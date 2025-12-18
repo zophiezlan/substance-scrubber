@@ -4,7 +4,7 @@
   "description": "Purpose-built for anonymizing drug checking and harm reduction photos by stripping EXIF metadata and obscuring sensitive details before community upload.",
   "start_url": "./",
   "background_color": "#ffffff",
-  "theme_color": "#ffffff",
+  "theme_color": "#6366f1",
   "display": "standalone",
   "scope": "./",
   "orientation": "any",

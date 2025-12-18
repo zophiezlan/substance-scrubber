@@ -8,7 +8,7 @@
       name="description"
       content="Purpose-built for anonymizing drug checking and harm reduction photos by stripping metadata and hiding sensitive details."
     />
-    <meta name="theme-color" content="#ffffff" />
+    <meta name="theme-color" content="#6366f1" />
 
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="apple-touch-icon" href="./scrubber_logo_ios_homescreen.png" />
@@ -17,31 +17,48 @@
     <title>Substance Scrubber - Anonymize Harm Reduction Photos</title>
   </head>
   <body>
+    <!-- Drop Zone Overlay -->
     <div id="drop-zone" aria-label="Drop zone for image files">
       <svg
         class="icon"
         xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 10 10"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
         aria-hidden="true"
       >
-        <path
-          d="M5,3 l0,4 M3,5 l4,0"
-          fill="none"
-          stroke="#fff"
-          stroke-width="0.5"
-        />
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+        <polyline points="17 8 12 3 7 8" />
+        <line x1="12" y1="3" x2="12" y2="15" />
       </svg>
     </div>
 
+    <!-- Top Toolbar -->
     <nav id="topBar" role="toolbar" aria-label="Image editing tools">
+      <!-- Open Image -->
       <div class="topBarDiv">
         <label
           for="file-input"
           class="customFileOpen controlButton"
           tabindex="0"
           role="button"
+          aria-label="Open image file"
         >
-          Open Image 📂
+          <svg
+            class="button-icon"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path
+              d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"
+            />
+            <polyline points="13 2 13 9 20 9" />
+          </svg>
+          <span>Open Image</span>
         </label>
         <input
           id="file-input"
@@ -51,6 +68,7 @@
         />
       </div>
 
+      <!-- Save Image -->
       <a
         id="saveButton"
         class="topBarDiv controlButton"
@@ -58,87 +76,123 @@
         role="button"
         aria-label="Save anonymized image"
       >
-        Save Image 💾
+        <svg
+          class="button-icon"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+        >
+          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+          <polyline points="17 21 17 13 7 13 7 21" />
+          <polyline points="7 3 7 8 15 8" />
+        </svg>
+        <span>Save Image</span>
       </a>
 
+      <!-- Rotate Image -->
       <div
         id="rotate"
         class="topBarDiv controlButton"
         tabindex="0"
         role="button"
-        aria-label="Rotate image 90 degrees"
+        aria-label="Rotate image 90 degrees clockwise"
       >
-        Rotate Image ⤾
+        <svg
+          class="button-icon"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+        >
+          <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2" />
+        </svg>
+        <span>Rotate</span>
       </div>
 
+      <!-- Paint/Blur/Undo Controls -->
       <div id="paintBlur" class="topBarDiv">
         <form id="paintForm">
-          <input
-            type="radio"
-            id="Paint"
-            name="paintingAction"
-            value="paint"
-            aria-label="Paint mode"
-          />
-          <label for="Paint">Paint</label>&nbsp;
+          <label>
+            <input
+              type="radio"
+              id="Paint"
+              name="paintingAction"
+              value="paint"
+              aria-label="Paint mode"
+            />
+            Paint
+          </label>
           <button
             data-jscolor="{valueElement:null,value:'000000'}"
             id="paintColor"
-            style="width: 20px; height: 20px"
             type="button"
             aria-label="Choose paint color"
           ></button>
-          <br />
-          <input
-            type="radio"
-            id="Blur"
-            name="paintingAction"
-            value="blur"
-            checked
-            aria-label="Blur mode"
-          />
-          <label for="Blur">Blur </label><br />
-          <input
-            type="radio"
-            id="Undo"
-            name="paintingAction"
-            value="undo"
-            aria-label="Undo mode"
-          />
-          <label for="Undo">Undo </label>
+
+          <label>
+            <input
+              type="radio"
+              id="Blur"
+              name="paintingAction"
+              value="blur"
+              checked
+              aria-label="Blur mode"
+            />
+            Blur
+          </label>
+
+          <label>
+            <input
+              type="radio"
+              id="Undo"
+              name="paintingAction"
+              value="undo"
+              aria-label="Undo mode"
+            />
+            Undo
+          </label>
         </form>
       </div>
 
+      <!-- Brush Type Controls -->
       <div id="brushType" class="topBarDiv">
         <form id="brushForm">
-          <input
-            type="radio"
-            id="Round"
-            name="useBrush"
-            value="round"
-            checked
-            aria-label="Round brush"
-          />
-          <label for="Round">Brush </label><br />
-          <input
-            type="radio"
-            id="Area"
-            name="useBrush"
-            value="area"
-            aria-label="Rectangle tool"
-          />
-          <label for="Area">Rectangle</label><br />
-          <input
-            type="radio"
-            id="Tap"
-            name="useBrush"
-            value="tap"
-            aria-label="Tap tool"
-          />
-          <label for="Tap">Tap </label><br />
+          <label>
+            <input
+              type="radio"
+              id="Round"
+              name="useBrush"
+              value="round"
+              checked
+              aria-label="Round brush"
+            />
+            Brush
+          </label>
+
+          <label>
+            <input
+              type="radio"
+              id="Area"
+              name="useBrush"
+              value="area"
+              aria-label="Rectangle tool"
+            />
+            Rectangle
+          </label>
+
+          <label>
+            <input
+              type="radio"
+              id="Tap"
+              name="useBrush"
+              value="tap"
+              aria-label="Tap tool"
+            />
+            Tap
+          </label>
         </form>
       </div>
 
+      <!-- Brush Size & Blur Radius Sliders -->
       <div id="brushSizeDiv" class="topBarDiv">
         <center>
           Brush Size<br />
@@ -151,6 +205,7 @@
             id="brushSizeSlider"
             aria-label="Brush size slider"
           />
+          <br />
           Blur Radius<br />
           <input
             type="range"
@@ -165,8 +220,39 @@
       </div>
     </nav>
 
-    <button id="about" aria-label="About this tool">About</button>
+    <!-- Theme Toggle Button -->
+    <button
+      id="themeToggle"
+      aria-label="Toggle dark mode"
+      title="Toggle dark mode"
+    >
+      <svg
+        class="button-icon"
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        aria-hidden="true"
+      >
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+      </svg>
+    </button>
 
+    <!-- About Button -->
+    <button id="about" aria-label="About this tool">
+      <svg
+        class="button-icon"
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        aria-hidden="true"
+        style="width: 18px; height: 18px; display: inline-block; vertical-align: middle; margin-right: 4px;"
+      >
+        <circle cx="12" cy="12" r="10" />
+        <line x1="12" y1="16" x2="12" y2="12" />
+        <line x1="12" y1="8" x2="12.01" y2="8" />
+      </svg>
+      About
+    </button>
+
+    <!-- About/Help Modal -->
     <div id="imageScrubberInfo" role="dialog" aria-labelledby="info-title">
       <pre>
 
@@ -207,17 +293,21 @@ Additional privacy resources: <a href="https://docs.google.com/document/d/1615pZ
       </pre>
     </div>
 
+    <!-- EXIF Information Modal -->
     <div
       id="exifInformationHolder"
       role="dialog"
       aria-labelledby="exif-title"
     ></div>
 
+    <!-- Main Canvas (visible) -->
     <canvas
       id="imageCanvas"
       role="img"
       aria-label="Image editing canvas"
     ></canvas>
+
+    <!-- Hidden Working Canvases -->
     <canvas id="tempCanvas" aria-hidden="true"></canvas>
     <canvas id="holderCanvas" aria-hidden="true"></canvas>
     <canvas id="rotationCanvas" aria-hidden="true"></canvas>
