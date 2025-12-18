@@ -285,14 +285,14 @@ export function escapeHtml(str) {
 
 /**
  * Create a modal overlay with focus trap
- * 
+ *
  * TODO: Implement full modal functionality with focus trap
- * 
+ *
  * @param {string} content - HTML content for modal
- * @param {Object} options - Modal options
+ * @param {Object} _options - Modal options (reserved for future use)
  * @returns {HTMLElement} Modal element
  */
-export function createModal(content, options = {}) {
+export function createModal(content, _options = {}) {
   // TODO: Implement modal creation with proper accessibility
   console.warn('createModal: Not yet implemented');
   return null;

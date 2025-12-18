@@ -190,6 +190,89 @@ body {
   border-left: none;
 }
 
+/* Control Group Visual Separation */
+[data-control-group] {
+  position: relative;
+}
+
+/* Add subtle left border to separate control groups */
+[data-control-group='transform']::before,
+[data-control-group='editing-modes']::before,
+[data-control-group='brush-settings']::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 10%;
+  height: 80%;
+  width: 2px;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    var(--color-border-strong) 20%,
+    var(--color-border-strong) 80%,
+    transparent
+  );
+}
+
+/* File Operations Group - Primary Actions */
+[data-control-group='file-operations'] {
+  background: var(--color-surface);
+}
+
+[data-control-group='file-operations']:hover {
+  background: var(--color-bg-secondary);
+}
+
+/* Transform Operations - Secondary Actions */
+[data-control-group='transform'] {
+  background: var(--color-surface);
+}
+
+/* Editing Modes - Active Workspace */
+[data-control-group='editing-modes'] {
+  background: linear-gradient(
+    to bottom,
+    var(--color-surface),
+    var(--color-bg-secondary)
+  );
+}
+
+/* Brush Tools - Active Workspace */
+[data-control-group='brush-tools'] {
+  background: linear-gradient(
+    to bottom,
+    var(--color-surface),
+    var(--color-bg-secondary)
+  );
+}
+
+/* Brush Settings - Parameters */
+[data-control-group='brush-settings'] {
+  background: var(--color-bg-tertiary);
+  border-left: 2px solid var(--color-border-strong);
+}
+
+/* Visual indicator for control groups in hover state */
+[data-control-group]:hover::after {
+  content: attr(data-control-group);
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  opacity: 0.6;
+  text-transform: capitalize;
+  white-space: nowrap;
+  pointer-events: none;
+  font-weight: var(--font-weight-normal);
+}
+
+/* Hide the label for file-operations group items (too long) */
+[data-control-group='file-operations']:hover::after {
+  content: '';
+}
+
 /* ===================================
    BUTTONS & CONTROLS
    =================================== */
@@ -780,6 +863,25 @@ button:focus {
    RESPONSIVE DESIGN
    =================================== */
 
+/* Future Expansion Notes:
+
+   To add new controls to existing groups:
+   1. Add the element with the appropriate data-control-group attribute
+   2. The CSS will automatically apply the correct styling
+
+   To add new control groups:
+   1. Create new elements with a new data-control-group="new-group-name"
+   2. Add CSS rules below to style the new group:
+      [data-control-group='new-group-name'] { ... }
+   3. Consider adding a separator with ::before pseudo-element
+
+   Example groups that could be added:
+   - data-control-group="filters" - Instagram-style filters
+   - data-control-group="shapes" - Add shapes (circles, arrows, text)
+   - data-control-group="advanced" - Advanced privacy tools
+   - data-control-group="batch" - Batch processing controls
+*/
+
 @media (max-width: 1024px) {
   :root {
     --font-size-base: 0.9375rem; /* 15px */
@@ -792,6 +894,18 @@ button:focus {
   .topBarDiv {
     min-height: 70px;
     padding: var(--space-2);
+  }
+
+  /* Reduce visual separator on smaller screens */
+  [data-control-group='transform']::before,
+  [data-control-group='editing-modes']::before,
+  [data-control-group='brush-settings']::before {
+    width: 1px;
+  }
+
+  /* Hide hover labels on touch devices */
+  [data-control-group]:hover::after {
+    display: none;
   }
 
   #imageCanvas {

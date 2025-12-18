@@ -21,17 +21,13 @@ import { rotateCanvas } from './modules/rotation.js';
 import { createEventHandlers } from './modules/eventHandlers.js';
 import { createFocusTrap, addKeyboardActivation } from './utils/focusTrap.js';
 import { showLoading, hideLoading, showError } from './utils/dom.js';
-import { 
-  DEFAULT_BRUSH_SIZE, 
-  DEFAULT_BLUR_AMOUNT, 
+import {
+  DEFAULT_BRUSH_SIZE,
+  DEFAULT_BLUR_AMOUNT,
   DEFAULT_PAINTING_MODE,
   DEFAULT_BRUSH_TYPE,
   DEFAULT_PAINT_COLOR,
-  BRUSH_ADJUSTMENT_FACTOR,
-  PAINTING_MODES,
-  BRUSH_TYPES,
-  THEME_STORAGE_KEY,
-  THEMES
+  BRUSH_ADJUSTMENT_FACTOR
 } from './utils/constants.js';
 import jscolor from '@eastdesire/jscolor';
 
