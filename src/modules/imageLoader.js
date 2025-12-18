@@ -9,7 +9,7 @@ import { extractExifData, displayExifData } from './exifHandler.js';
  * @param {File} file - Image file to load
  * @param {Object} canvases - Canvas objects
  * @param {Function} onImageLoaded - Callback when image is loaded
- * @returns {Promise<string>} Filename
+ * @returns {Promise<Object>} Image metadata
  */
 export async function loadImage(file, canvases, onImageLoaded) {
   const {
@@ -31,13 +31,19 @@ export async function loadImage(file, canvases, onImageLoaded) {
   });
 
   // Load image
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const reader = new FileReader();
+
+    reader.onerror = () => reject(new Error('Unable to read file.'));
 
     reader.onload = (e) => {
       const img = new Image();
 
+      img.onerror = () => reject(new Error('Unsupported or corrupted image.'));
+
       img.onload = () => {
+        const originalWidth = img.width;
+        const originalHeight = img.height;
         let width = img.width;
         let height = img.height;
         const maxDimension = 2500;
@@ -67,7 +73,13 @@ export async function loadImage(file, canvases, onImageLoaded) {
         ctx.drawImage(img, 0, 0, width, height);
         rotationCtx.drawImage(img, 0, 0, width, height);
 
-        resolve(file.name);
+        resolve({
+          filename: file.name,
+          originalWidth,
+          originalHeight,
+          width,
+          height,
+        });
       };
 
       img.src = e.target.result;
