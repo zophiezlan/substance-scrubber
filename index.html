@@ -391,6 +391,87 @@
       aria-describedby="exif-description"
     ></div>
 
+    <!-- Keyboard Shortcuts Help Modal -->
+    <div
+      id="keyboardShortcutsDialog"
+      role="dialog"
+      aria-labelledby="shortcuts-title"
+      aria-modal="false"
+      aria-describedby="shortcuts-description"
+      style="display: none;"
+    >
+      <div>
+        <h3 id="shortcuts-title">Keyboard Shortcuts</h3>
+        <p id="shortcuts-description">Use these shortcuts to navigate and edit faster</p>
+        
+        <section>
+          <h4>File Operations</h4>
+          <dl>
+            <dt><kbd>Ctrl</kbd>+<kbd>S</kbd> (or <kbd>⌘</kbd>+<kbd>S</kbd>)</dt>
+            <dd>Save processed image</dd>
+            
+            <dt><kbd>Ctrl</kbd>+<kbd>O</kbd> (or <kbd>⌘</kbd>+<kbd>O</kbd>)</dt>
+            <dd>Open image file</dd>
+            
+            <dt><kbd>Ctrl</kbd>+<kbd>R</kbd> (or <kbd>⌘</kbd>+<kbd>R</kbd>)</dt>
+            <dd>Rotate image 90° clockwise</dd>
+          </dl>
+        </section>
+        
+        <section>
+          <h4>Editing Modes</h4>
+          <dl>
+            <dt><kbd>B</kbd></dt>
+            <dd>Switch to Blur mode</dd>
+            
+            <dt><kbd>P</kbd></dt>
+            <dd>Switch to Paint mode</dd>
+            
+            <dt><kbd>U</kbd></dt>
+            <dd>Switch to Undo mode (restore original)</dd>
+          </dl>
+        </section>
+        
+        <section>
+          <h4>Brush Tools</h4>
+          <dl>
+            <dt><kbd>1</kbd></dt>
+            <dd>Round brush (stroke)</dd>
+            
+            <dt><kbd>2</kbd></dt>
+            <dd>Rectangle tool (area)</dd>
+            
+            <dt><kbd>3</kbd></dt>
+            <dd>Tap tool (single click)</dd>
+          </dl>
+        </section>
+        
+        <section>
+          <h4>Brush Size</h4>
+          <dl>
+            <dt><kbd>[</kbd></dt>
+            <dd>Decrease brush size</dd>
+            
+            <dt><kbd>]</kbd></dt>
+            <dd>Increase brush size</dd>
+          </dl>
+        </section>
+        
+        <section>
+          <h4>Help & Navigation</h4>
+          <dl>
+            <dt><kbd>?</kbd> or <kbd>F1</kbd></dt>
+            <dd>Open this help dialog</dd>
+            
+            <dt><kbd>Esc</kbd></dt>
+            <dd>Close dialogs</dd>
+          </dl>
+        </section>
+        
+        <button id="closeShortcutsButton" type="button" aria-label="Close keyboard shortcuts dialog">Close</button>
+      </div>
+    </div>
+
     <!-- Main Canvas (visible) -->
     <canvas
       id="imageCanvas"

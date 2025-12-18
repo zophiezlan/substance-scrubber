@@ -66,6 +66,7 @@ const state = {
   // NOTE: Focus traps for accessibility (modal focus management)
   aboutModalTrap: null,
   exifModalTrap: null,
+  shortcutsModalTrap: null,
 };
 
 /**
@@ -298,6 +299,22 @@ function init() {
         }
       }
     });
+  }
+
+  // Setup keyboard shortcuts modal
+  const shortcutsDialog = document.getElementById('keyboardShortcutsDialog');
+  const closeShortcutsButton = document.getElementById('closeShortcutsButton');
+  
+  if (shortcutsDialog) {
+    // Create focus trap for shortcuts modal
+    state.shortcutsModalTrap = createFocusTrap(shortcutsDialog, () => {
+      closeShortcutsModal();
+    });
+
+    // Close button handler
+    if (closeShortcutsButton) {
+      closeShortcutsButton.addEventListener('click', closeShortcutsModal);
+    }
   }
 
   // Setup drag and drop
@@ -792,7 +809,8 @@ function setupKeyboardShortcuts() {
       case '?':
       case 'F1':
         e.preventDefault();
-        document.getElementById('about')?.click();
+        openShortcutsModal();
+        announceToScreenReader('Keyboard shortcuts dialog opened');
         break;
     }
   });
@@ -815,6 +833,54 @@ function adjustBrushSize(delta) {
   // Trigger change event to update brush
   slider.dispatchEvent(new Event('change'));
   announceToScreenReader(`Brush size: ${newValue}`);}
+
+/**
+ * Open the keyboard shortcuts modal
+ */
+function openShortcutsModal() {
+  const shortcutsDialog = document.getElementById('keyboardShortcutsDialog');
+  const mainContent = document.getElementById('topBar');
+  const canvas = document.getElementById('imageCanvas');
+  
+  if (!shortcutsDialog) return;
+  
+  // Hide background content from screen readers
+  if (mainContent) mainContent.setAttribute('aria-hidden', 'true');
+  if (canvas) canvas.setAttribute('aria-hidden', 'true');
+  
+  // Show modal
+  shortcutsDialog.style.display = 'block';
+  shortcutsDialog.setAttribute('aria-modal', 'true');
+  
+  // Activate focus trap
+  if (state.shortcutsModalTrap) {
+    setTimeout(() => state.shortcutsModalTrap.activate(), 50);
+  }
+}
+
+/**
+ * Close the keyboard shortcuts modal
+ */
+function closeShortcutsModal() {
+  const shortcutsDialog = document.getElementById('keyboardShortcutsDialog');
+  const mainContent = document.getElementById('topBar');
+  const canvas = document.getElementById('imageCanvas');
+  
+  if (!shortcutsDialog) return;
+  
+  // Deactivate focus trap
+  if (state.shortcutsModalTrap) {
+    state.shortcutsModalTrap.deactivate();
+  }
+  
+  // Hide modal
+  shortcutsDialog.style.display = 'none';
+  shortcutsDialog.setAttribute('aria-modal', 'false');
+  
+  // Restore background content for screen readers
+  if (mainContent) mainContent.removeAttribute('aria-hidden');
+  if (canvas) canvas.removeAttribute('aria-hidden');
+}
 
 /**
  * Announce message to screen readers via aria-live region

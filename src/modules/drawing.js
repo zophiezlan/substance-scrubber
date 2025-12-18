@@ -47,10 +47,30 @@ export function clearCursorCache() {
  * interpolatePath(ctx, lastX, lastY, currentX, currentY, 25, '#000000');
  */
 export function interpolatePath(pathCtx, x1, y1, x2, y2, r, paintColor) {
-  // TODO: Add input validation for coordinates and radius
-  if (r <= 0) {
-    console.warn('interpolatePath: Brush radius must be positive');
+  // Validate context
+  if (!pathCtx || typeof pathCtx.strokeStyle === 'undefined') {
+    console.error('interpolatePath: Invalid canvas context');
     return;
+  }
+  
+  // Validate coordinates
+  if (typeof x1 !== 'number' || typeof y1 !== 'number' || 
+      typeof x2 !== 'number' || typeof y2 !== 'number' ||
+      isNaN(x1) || isNaN(y1) || isNaN(x2) || isNaN(y2)) {
+    console.error('interpolatePath: Invalid coordinates');
+    return;
+  }
+  
+  // Validate radius
+  if (typeof r !== 'number' || isNaN(r) || r <= 0) {
+    console.warn('interpolatePath: Brush radius must be a positive number');
+    return;
+  }
+  
+  // Validate color
+  if (!paintColor || typeof paintColor !== 'string') {
+    console.warn('interpolatePath: Invalid paint color, using default');
+    paintColor = '#000000';
   }
   
   pathCtx.strokeStyle = paintColor;
@@ -89,9 +109,29 @@ export function interpolatePath(pathCtx, x1, y1, x2, y2, r, paintColor) {
  * tapDraw(ctx, 100, 200, 50, '#FF0000');
  */
 export function tapDraw(pathCtx, mouseX, mouseY, r, paintColor) {
-  if (r <= 0) {
-    console.warn('tapDraw: Brush radius must be positive');
+  // Validate context
+  if (!pathCtx || typeof pathCtx.fillStyle === 'undefined') {
+    console.error('tapDraw: Invalid canvas context');
     return;
+  }
+  
+  // Validate coordinates
+  if (typeof mouseX !== 'number' || typeof mouseY !== 'number' ||
+      isNaN(mouseX) || isNaN(mouseY)) {
+    console.error('tapDraw: Invalid coordinates');
+    return;
+  }
+  
+  // Validate radius
+  if (typeof r !== 'number' || isNaN(r) || r <= 0) {
+    console.warn('tapDraw: Brush radius must be a positive number');
+    return;
+  }
+  
+  // Validate color
+  if (!paintColor || typeof paintColor !== 'string') {
+    console.warn('tapDraw: Invalid paint color, using default');
+    paintColor = '#000000';
   }
   
   pathCtx.fillStyle = paintColor;
@@ -136,10 +176,29 @@ export function areaDraw(
   canvas,
   holderCanvas
 ) {
-  // TODO: Validate all parameters
-  if (!pathCtx || !canvas) {
-    console.error('areaDraw: Missing required parameters');
+  // Validate required parameters
+  if (!pathCtx || typeof pathCtx.clearRect === 'undefined') {
+    console.error('areaDraw: Invalid canvas context');
     return;
+  }
+  
+  if (!canvas || typeof canvas.width === 'undefined') {
+    console.error('areaDraw: Invalid canvas element');
+    return;
+  }
+  
+  // Validate coordinates
+  if (typeof mouseX !== 'number' || typeof mouseY !== 'number' ||
+      typeof mouseX_start !== 'number' || typeof mouseY_start !== 'number' ||
+      isNaN(mouseX) || isNaN(mouseY) || isNaN(mouseX_start) || isNaN(mouseY_start)) {
+    console.error('areaDraw: Invalid coordinates');
+    return;
+  }
+  
+  // Validate color
+  if (!paintColor || typeof paintColor !== 'string') {
+    console.warn('areaDraw: Invalid paint color, using default');
+    paintColor = '#000000';
   }
   
   // Clear the canvas to remove previous rectangle preview
