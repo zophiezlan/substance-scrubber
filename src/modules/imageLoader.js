@@ -89,7 +89,7 @@ export async function loadImage(file, canvases, onImageLoaded) {
 
     reader.onerror = (error) => {
       console.error('FileReader error:', error);
-      reject(new Error('Unable to read file. The file may be corrupted or inaccessible.'));
+      reject(new Error(`Unable to read file: ${file.name}. The file may be corrupted or inaccessible.`));
     };
 
     reader.onload = (e) => {
@@ -97,7 +97,7 @@ export async function loadImage(file, canvases, onImageLoaded) {
 
       img.onerror = (error) => {
         console.error('Image load error:', error);
-        reject(new Error('Unsupported or corrupted image file.'));
+        reject(new Error(`Failed to load image: ${file.name}. The file format may not be supported or the image is corrupted.`));
       };
 
       img.onload = () => {

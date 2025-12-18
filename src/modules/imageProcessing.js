@@ -58,35 +58,40 @@ function sanitizeFilename(filename) {
  * 
  * @param {HTMLCanvasElement} canvas - The canvas containing the processed image
  * @param {string} filename - Original filename (used to generate output filename)
+ * @returns {Promise<void>} Resolves when save is complete
+ * @throws {Error} If canvas is invalid or blob creation fails
  * 
  * @example
- * // Save the canvas with original filename "photo.jpg"
- * saveImage(canvas, 'photo.jpg');
- * // Downloads as: "photo_scrubbed.png"
+ * try {
+ *   await saveImage(canvas, 'photo.jpg');
+ *   console.log('Image saved successfully');
+ * } catch (error) {
+ *   console.error('Save failed:', error);
+ * }
  */
 export function saveImage(canvas, filename) {
-  // TODO: Add input validation
-  if (!canvas) {
-    console.error('saveImage: Canvas element is required');
-    return;
+  // Input validation
+  if (!canvas || !(canvas instanceof HTMLCanvasElement)) {
+    throw new Error('Invalid canvas element provided');
   }
   
-  if (!filename) {
+  if (!filename || typeof filename !== 'string') {
     console.warn('saveImage: No filename provided, using default');
     filename = 'image';
   }
 
-  // Convert canvas to blob - this is where EXIF stripping happens!
-  // The canvas API creates a new image without any metadata
-  canvas.toBlob(
-    (blob) => {
-      if (!blob) {
-        console.error('Failed to create blob from canvas');
-        // TODO: Show error message to user
-        return;
-      }
-      
-      try {
+  // Return promise for async operation
+  return new Promise((resolve, reject) => {
+    // Convert canvas to blob - this is where EXIF stripping happens!
+    // The canvas API creates a new image without any metadata
+    canvas.toBlob(
+      (blob) => {
+        if (!blob) {
+          reject(new Error('Failed to create image data from canvas. The canvas may be empty or corrupted.'));
+          return;
+        }
+        
+        try {
         // Create a temporary download link
         const link = document.createElement('a');
 
@@ -116,15 +121,17 @@ export function saveImage(canvas, filename) {
         }, 100);
         
         console.info(`Image saved as: ${link.download}`);
+        resolve();
       } catch (error) {
         console.error('Error during image save:', error);
-        // TODO: Show error message to user
+        reject(new Error(`Failed to save image: ${error.message || 'Unknown error'}`));
       }
     },
     OUTPUT_IMAGE_FORMAT,
     OUTPUT_IMAGE_QUALITY
   );
-}
+  })
+;}
 
 /**
  * Validate if a file is a supported image type

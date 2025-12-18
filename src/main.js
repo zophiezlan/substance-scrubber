@@ -20,6 +20,7 @@ import { loadImage, setupDragAndDrop } from './modules/imageLoader.js';
 import { rotateCanvas } from './modules/rotation.js';
 import { createEventHandlers } from './modules/eventHandlers.js';
 import { createFocusTrap, addKeyboardActivation } from './utils/focusTrap.js';
+import { showLoading, hideLoading, showError } from './utils/dom.js';
 import { 
   DEFAULT_BRUSH_SIZE, 
   DEFAULT_BLUR_AMOUNT, 
@@ -213,12 +214,25 @@ function init() {
   // Setup save button
   const saveButton = document.getElementById('saveButton');
   if (saveButton) {
-    saveButton.addEventListener('click', () => {
-      if (state.filename) {
-        saveImage(canvas, state.filename);
-        showStatus('Image saved. You can clear the session when finished.', 'success');
-      } else {
-        showStatus('Load an image before saving.', 'warning');
+    saveButton.addEventListener('click', async () => {
+      if (!state.filename) {
+        showError('No Image Loaded', 'Please load an image before attempting to save.');
+        return;
+      }
+      
+      try {
+        showLoading('Saving anonymized image...');
+        await saveImage(canvas, state.filename);
+        hideLoading();
+        showStatus('Image saved successfully! All metadata has been removed.', 'success');
+        announceToScreenReader('Image saved successfully');
+      } catch (error) {
+        hideLoading();
+        showError(
+          'Failed to Save Image',
+          error.message || 'An unexpected error occurred while saving the image. Please try again.',
+          error
+        );
       }
     });
   }
@@ -227,8 +241,25 @@ function init() {
   const rotateButton = document.getElementById('rotate');
   if (rotateButton) {
     rotateButton.addEventListener('click', () => {
-      rotateCanvas(canvases);
-      showStatus('Image rotated.', 'info');
+      if (!state.imageMeta) {
+        showError('No Image Loaded', 'Please load an image before attempting to rotate.');
+        return;
+      }
+      
+      try {
+        showLoading('Rotating image...');
+        rotateCanvas(canvases);
+        hideLoading();
+        showStatus('Image rotated 90° clockwise.', 'info');
+        announceToScreenReader('Image rotated');
+      } catch (error) {
+        hideLoading();
+        showError(
+          'Failed to Rotate Image',
+          error.message || 'An unexpected error occurred while rotating the image.',
+          error
+        );
+      }
     });
   }
 
@@ -300,15 +331,33 @@ function init() {
     }, 150);
   });
 
-  // Setup hygiene control
+  // Setup hygiene control with confirmation
   const clearSessionButton = document.getElementById('clearSession');
   if (clearSessionButton) {
     clearSessionButton.addEventListener('click', () => {
-      clearSession(canvases);
-      state.filename = '';
-      state.imageMeta = null;
-      showStatus('Session cleared from memory.', 'success');
-      updateCanvasGuidance(state, canvas);
+      if (!state.imageMeta) {
+        // Nothing to clear
+        showStatus('No active session to clear.', 'info');
+        return;
+      }
+      
+      // Ask for confirmation to prevent accidental data loss
+      if (confirm('Clear the current session? This will remove the loaded image and all edits from memory. This action cannot be undone.')) {
+        try {
+          clearSession(canvases);
+          state.filename = '';
+          state.imageMeta = null;
+          showStatus('Session cleared successfully. All image data has been removed from memory.', 'success');
+          updateCanvasGuidance(state, canvas);
+          announceToScreenReader('Session cleared');
+        } catch (error) {
+          showError(
+            'Failed to Clear Session',
+            error.message || 'An unexpected error occurred while clearing the session.',
+            error
+          );
+        }
+      }
     });
   }
 
@@ -795,7 +844,7 @@ function announceToScreenReader(message, priority = 'polite') {
  */
 async function handleFileLoad(file, canvases) {
   if (!file) {
-    showStatus('No file selected. Please choose an image to scrub.', 'warning');
+    showError('No File Selected', 'Please choose an image file to anonymize.');
     return;
   }
 
@@ -803,12 +852,15 @@ async function handleFileLoad(file, canvases) {
   const isImageName = file && /\.(png|jpe?g|gif|webp|bmp)$/i.test(file.name || '');
 
   if (!isImageType && !isImageName) {
-    showStatus('Unsupported file type. Please choose an image.', 'error');
+    showError(
+      'Unsupported File Type',
+      `The file "${file.name}" is not a supported image format. Please choose a PNG, JPEG, GIF, WebP, or BMP image.`
+    );
     return;
   }
 
   try {
-    showStatus('Loading image and checking metadata…', 'info');
+    showLoading('Loading image and extracting metadata...');
     const imageMeta = await loadImage(file, canvases, () => {
       // Update brush size after image is loaded
       const brushSizeSlider = document.getElementById('brushSizeSlider');
@@ -822,17 +874,22 @@ async function handleFileLoad(file, canvases) {
         );
         setCursor(canvases.canvas, state.brushSize, state.brush);
       }
+      hideLoading();
     });
     state.filename = imageMeta.filename;
     state.imageMeta = imageMeta;
     updateCanvasGuidance(state, canvases.canvas);
     showStatus(
-      'EXIF removed and image ready. Paint over critical details before saving.',
+      'Image loaded successfully. Use blur or paint to anonymize sensitive areas.',
       'success'
     );
   } catch (error) {
-    console.error('Error loading image:', error);
-    showStatus('Error loading image. Please try again with a supported file.', 'error');
+    hideLoading();
+    showError(
+      'Failed to Load Image',
+      error.message || 'An unexpected error occurred while loading the image. Please try again with a different file.',
+      error
+    );
   }
 }
 

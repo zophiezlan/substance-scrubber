@@ -8,6 +8,132 @@
  */
 
 /**
+ * Show loading overlay with message
+ * 
+ * Displays a loading indicator to inform users that an operation is in progress.
+ * The loading overlay blocks interaction to prevent conflicting operations.
+ * 
+ * @param {string} [message='Loading...'] - Message to display
+ * 
+ * @example
+ * showLoading('Processing image...');
+ * await longOperation();
+ * hideLoading();
+ */
+export function showLoading(message = 'Loading...') {
+  let overlay = document.getElementById('loadingOverlay');
+  
+  // Create overlay if it doesn't exist
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'loadingOverlay';
+    overlay.className = 'loading-overlay';
+    overlay.innerHTML = `
+      <div class="loading-spinner"></div>
+      <div id="loadingMessage" class="loading-message">${message}</div>
+    `;
+    overlay.setAttribute('role', 'alert');
+    overlay.setAttribute('aria-live', 'assertive');
+    overlay.setAttribute('aria-busy', 'true');
+    document.body.appendChild(overlay);
+  } else {
+    // Update message if overlay exists
+    const messageEl = document.getElementById('loadingMessage');
+    if (messageEl) {
+      messageEl.textContent = message;
+    }
+  }
+  
+  overlay.style.display = 'flex';
+}
+
+/**
+ * Hide loading overlay
+ * 
+ * Removes the loading indicator and allows user interaction again.
+ * 
+ * @example
+ * showLoading('Saving image...');
+ * await saveOperation();
+ * hideLoading();
+ */
+export function hideLoading() {
+  const overlay = document.getElementById('loadingOverlay');
+  if (overlay) {
+    overlay.style.display = 'none';
+    overlay.setAttribute('aria-busy', 'false');
+  }
+}
+
+/**
+ * Show error message to user
+ * 
+ * Displays a user-friendly error message in a modal dialog instead of
+ * just logging to console. This ensures users know when something went wrong.
+ * 
+ * @param {string} title - Error title
+ * @param {string} message - Detailed error message
+ * @param {Error} [error] - Optional error object for logging
+ * 
+ * @example
+ * try {
+ *   await riskyOperation();
+ * } catch (err) {
+ *   showError('Operation Failed', 'Unable to process image', err);
+ * }
+ */
+export function showError(title, message, error = null) {
+  if (error) {
+    console.error(`${title}:`, error);
+  }
+  
+  // Hide loading overlay if showing
+  hideLoading();
+  
+  let errorModal = document.getElementById('errorModal');
+  
+  // Create error modal if it doesn't exist
+  if (!errorModal) {
+    errorModal = document.createElement('div');
+    errorModal.id = 'errorModal';
+    errorModal.className = 'error-modal';
+    errorModal.setAttribute('role', 'alertdialog');
+    errorModal.setAttribute('aria-labelledby', 'errorTitle');
+    errorModal.setAttribute('aria-describedby', 'errorMessage');
+    document.body.appendChild(errorModal);
+  }
+  
+  errorModal.innerHTML = `
+    <div class="error-modal-content">
+      <div class="error-icon" aria-hidden="true">⚠️</div>
+      <h3 id="errorTitle">${escapeHtml(title)}</h3>
+      <p id="errorMessage">${escapeHtml(message)}</p>
+      <button id="errorCloseButton" class="error-close-button">OK</button>
+    </div>
+  `;
+  
+  errorModal.style.display = 'flex';
+  
+  // Setup close button
+  const closeBtn = document.getElementById('errorCloseButton');
+  if (closeBtn) {
+    closeBtn.onclick = () => {
+      errorModal.style.display = 'none';
+    };
+    closeBtn.focus();
+  }
+  
+  // Close on Escape key
+  const handleEscape = (e) => {
+    if (e.key === 'Escape') {
+      errorModal.style.display = 'none';
+      document.removeEventListener('keydown', handleEscape);
+    }
+  };
+  document.addEventListener('keydown', handleEscape);
+}
+
+/**
  * Safely get a DOM element by ID with error handling
  * 
  * @param {string} id - Element ID
