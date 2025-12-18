@@ -99,19 +99,15 @@ function setCursor() {
     cursorCtx.stroke();
 
     const cursorDataURL = cursorCanvas.toDataURL();
-    canvas.style.cursor =
-      `url(${ 
-      cursorDataURL 
-      }) ${ 
-      cursorCanvas.width / 2 
-      } ${ 
-      cursorCanvas.height / 2 
-      }, auto`;
+    canvas.style.cursor = `url(${cursorDataURL}) ${cursorCanvas.width / 2} ${
+      cursorCanvas.height / 2
+    }, auto`;
   }
 }
 
 // get list of radio buttons with name 'paintForm'
-const paintFormElements = document.forms['paintForm'].elements['paintingAction'];
+const paintFormElements =
+  document.forms['paintForm'].elements['paintingAction'];
 
 // loop through list
 for (var i = 0, len = paintFormElements.length; i < len; i++) {

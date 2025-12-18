@@ -29,9 +29,9 @@ export default [
     ignores: [
       'dist/',
       'node_modules/',
-      'scripts/**',  // Ignore all legacy scripts
-      'sw.js',       // Old service worker
-      '*.html',      // HTML files don't need JS linting
+      'scripts/**', // Ignore all legacy scripts
+      'sw.js', // Old service worker
+      '*.html', // HTML files don't need JS linting
     ],
   },
 ];

@@ -113,10 +113,9 @@ function onFileChange(e) {
       const exifData = JSON.stringify(this.exifdata, null, 4);
       if (exifData) {
         if (exifData.toString() == '{}') {
-          exifInformationHolder.innerHTML =
-            `<center>No EXIF data found in image '${ 
-            file.name 
-            }'.<br><br></center>`;
+          exifInformationHolder.innerHTML = `<center>No EXIF data found in image '${
+            file.name
+          }'.<br><br></center>`;
           var btn = document.createElement('BUTTON');
           btn.id = 'continueButton';
           btn.innerHTML = 'Continue to edit image';
