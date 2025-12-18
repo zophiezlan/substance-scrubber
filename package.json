@@ -15,7 +15,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/everestpipkin/image-scrubber.git"
+    "url": "git+https://github.com/zophiezlan/substance-scrubber.git"
   },
   "keywords": [
     "privacy",
@@ -30,9 +30,9 @@
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/everestpipkin/image-scrubber/issues"
+    "url": "https://github.com/zophiezlan/substance-scrubber/issues"
   },
-  "homepage": "https://github.com/everestpipkin/image-scrubber#readme",
+  "homepage": "https://github.com/zophiezlan/substance-scrubber#readme",
   "devDependencies": {
     "@eslint/js": "^9.17.0",
     "@vitest/ui": "^2.1.8",

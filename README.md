@@ -2,7 +2,7 @@
 
 A modern, privacy-focused tool for anonymizing photographs by removing EXIF metadata and blurring sensitive information. Perfect for harm reduction, privacy protection, and any situation where you need to share images safely and anonymously.
 
-[![CI/CD](https://github.com/everestpipkin/image-scrubber/actions/workflows/ci.yml/badge.svg)](https://github.com/everestpipkin/image-scrubber/actions/workflows/ci.yml)
+[![CI/CD](https://github.com/zophiezlan/substance-scrubber/actions/workflows/ci.yml/badge.svg)](https://github.com/zophiezlan/substance-scrubber/actions/workflows/ci.yml)
 
 ## Features
 
@@ -18,7 +18,7 @@ A modern, privacy-focused tool for anonymizing photographs by removing EXIF meta
 
 ### Online
 
-Visit the [live tool](https://everestpipkin.github.io/image-scrubber/) to use it directly in your browser.
+Visit the [live tool](https://zophiezlan.github.io/substance-scrubber/) to use it directly in your browser.
 
 ### Mobile App Installation
 
@@ -44,7 +44,7 @@ For maximum privacy and security:
 
 ```bash
 # Clone the repository
-git clone https://github.com/everestpipkin/image-scrubber.git
+git clone https://github.com/zophiezlan/substance-scrubber.git
 cd image-scrubber
 
 # Install dependencies
@@ -112,7 +112,7 @@ npm run format
 ### Project Structure
 
 ```
-safer-image-pro/
+substance-scrubber/
 ├── src/
 │   ├── main.js              # Application entry point
 │   ├── modules/             # Feature modules
@@ -202,27 +202,10 @@ For maximum security:
 
 ISC
 
-## Credits
-
-Original concept and implementation by Everest Pipkin.
-
-Modernized version uses code and inspiration from:
-
-- [exif-js](https://github.com/exif-js/exif-js) (now using exifreader)
-- [StackBlur](http://quasimondo.com/StackBlurForCanvas/StackBlur.js)
-- Various Stack Overflow contributors (see original code comments)
-
-## Additional Resources
-
-For more privacy and harm reduction resources:
-
-- [Privacy Guide (Google Doc)](https://docs.google.com/document/d/1615pZB11BhsR0KtvyiXfzfMUBlxZi47HzzhWHIRpxwU/edit)
-- [Privacy Guide (Pastebin)](https://pastebin.com/TPgtvmVB)
-
 ## Support
 
-- **Issues:** [GitHub Issues](https://github.com/everestpipkin/image-scrubber/issues)
-- **Email:** everest.pipkin@gmail.com
+- **Issues:** [GitHub Issues](https://github.com/zophiezlan/substance-scrubber/issues)
+- **Email:** zophietucker@gmail.com
 
 ---
 
