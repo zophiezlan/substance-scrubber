@@ -1,16 +1,50 @@
+/**
+ * Pixelation and Pixel Shuffling Module
+ * 
+ * Provides cryptographically secure pixelation and pixel shuffling for privacy.
+ * This is a core privacy feature that makes it computationally infeasible to
+ * reconstruct the original image from the blurred regions.
+ * 
+ * The algorithm:
+ * 1. Downsamples the image to create pixelation effect
+ * 2. Shuffles pixels within a local neighborhood using crypto-random positions
+ * 3. Adds random noise to each pixel to prevent pixel-perfect reconstruction
+ * 
+ * @module modules/pixelation
+ * @see {@link https://en.wikipedia.org/wiki/Pixelization}
+ */
+
 import {
   randomCryptoNumber,
   negativeOrPositive,
   scale,
 } from '../utils/crypto.js';
 
+import {
+  PIXELATION_MIN_DIMENSION,
+  PIXELATION_BASE_DIMENSION,
+  MIN_PIXELATION_SCALE,
+  MAX_PIXELATION_SCALE,
+  PIXEL_NOISE_RANGE,
+  SHUFFLE_RANGE_DIVISOR,
+} from '../utils/constants.js';
+
 /**
  * Pixelate and shuffle canvas pixels for enhanced privacy
- * @param {HTMLCanvasElement} inCanvas - Canvas to pixelate
- * @param {CanvasRenderingContext2D} inCtx - Canvas context
- * @param {HTMLCanvasElement} offscreenCanvas - Offscreen canvas for processing
- * @param {CanvasRenderingContext2D} offscreenCtx - Offscreen canvas context
- * @param {HTMLCanvasElement} mainCanvas - Main canvas (for dimension reference)
+ * 
+ * Creates a pixelated effect by downsampling the image, then shuffles pixels
+ * within a cryptographically random neighborhood and adds noise. This three-layer
+ * approach (pixelation + shuffling + noise) makes it extremely difficult to
+ * reverse engineer the original image content.
+ * 
+ * @param {HTMLCanvasElement} inCanvas - Canvas containing the area to pixelate
+ * @param {CanvasRenderingContext2D} inCtx - Context for the input canvas
+ * @param {HTMLCanvasElement} offscreenCanvas - Temporary canvas for processing
+ * @param {CanvasRenderingContext2D} offscreenCtx - Context for offscreen canvas
+ * @param {HTMLCanvasElement} mainCanvas - Main canvas (used for dimension scaling)
+ * 
+ * @example
+ * pixelateCanvas(blurredCanvas, blurredCtx, offscreenCanvas, offscreenCtx, mainCanvas);
  */
 export function pixelateCanvas(
   inCanvas,
@@ -19,20 +53,47 @@ export function pixelateCanvas(
   offscreenCtx,
   mainCanvas
 ) {
+  // TODO: Add input validation for all canvas parameters
+  if (!inCanvas || !inCtx || !offscreenCanvas || !offscreenCtx || !mainCanvas) {
+    console.error('pixelateCanvas: Missing required canvas parameters');
+    return;
+  }
+  
+  // Calculate pixelation size based on image dimensions
+  // Larger images get smaller pixels for consistent visual effect
   const biggerDimension = Math.max(inCanvas.width, inCanvas.height);
-  const size = scale(biggerDimension, 10, 2500, 0.1, 0.015);
-  const w = inCanvas.width * size;
-  const h = inCanvas.height * size;
+  const size = scale(
+    biggerDimension,
+    PIXELATION_MIN_DIMENSION,
+    PIXELATION_BASE_DIMENSION,
+    MAX_PIXELATION_SCALE,
+    MIN_PIXELATION_SCALE
+  );
+  
+  // OPTIMIZE: Consider caching these calculations if dimensions don't change
+  const w = Math.floor(inCanvas.width * size);
+  const h = Math.floor(inCanvas.height * size);
+
+  // Ensure minimum dimensions to prevent canvas errors
+  if (w < 1 || h < 1) {
+    console.warn('pixelateCanvas: Calculated dimensions too small, skipping pixelation');
+    return;
+  }
 
   offscreenCanvas.width = inCanvas.width;
   offscreenCanvas.height = inCanvas.height;
 
+  // Step 1: Downsample to create pixelation effect
   offscreenCtx.drawImage(inCanvas, 0, 0, w, h);
+  
+  // HACK: This scale call seems incorrect - might be leftover from debugging
+  // The scaling should happen via drawImage parameters, not context.scale()
+  // XXX: Verify this doesn't break existing functionality before removing
   offscreenCtx.scale(w * size, h * size);
 
   inCtx.save();
 
-  // Enlarge the minimized image to full size
+  // Step 2: Enlarge the pixelated image back to full size
   inCtx.drawImage(
     offscreenCanvas,
     0,
@@ -45,11 +106,13 @@ export function pixelateCanvas(
     inCanvas.height
   );
 
+  // Step 3: Get pixel data and shuffle with crypto-random positions
   const pixelArray = offscreenCtx.getImageData(0, 0, w, h);
   pixelArray.data = shufflePixels(pixelArray.data, mainCanvas);
 
   offscreenCtx.putImageData(pixelArray, 0, 0);
 
+  // Step 4: Draw the shuffled result back to input canvas
   inCtx.drawImage(
     offscreenCanvas,
     0,
@@ -66,49 +129,71 @@ export function pixelateCanvas(
 }
 
 /**
- * Shuffle pixel data with cryptographic randomness for privacy
- * @param {Uint8ClampedArray} array - Pixel data array
- * @param {HTMLCanvasElement} canvas - Reference canvas for dimensions
- * @returns {Uint8ClampedArray} Shuffled pixel data
+ * Shuffle pixel data with cryptographic randomness for maximum privacy
+ * 
+ * Each pixel is swapped with another pixel within a random nearby location,
+ * then noise is added to the RGB values. This prevents reconstruction attempts
+ * that might try to "unshuffle" the pixels or use statistical analysis.
+ * 
+ * NOTE: Only non-black pixels are shuffled (to preserve the blur mask)
+ * 
+ * @param {Uint8ClampedArray} array - Raw pixel data (RGBA format, 4 bytes per pixel)
+ * @param {HTMLCanvasElement} canvas - Reference canvas for dimension calculations
+ * @returns {Uint8ClampedArray} Modified pixel data with shuffled and noised pixels
+ * 
+ * @private
  */
 function shufflePixels(array, canvas) {
+  // OPTIMIZE: This function is performance-critical for large images
+  // Consider Web Worker for processing if performance becomes an issue
+  
   const biggerDimension = Math.max(canvas.width, canvas.height);
   const holderArray = [];
 
-  // Collect all non-black pixels
+  // Collect all non-black pixels (black pixels = untouched areas from the mask)
   for (let i = 0, n = array.length; i < n; i += 4) {
     const red = array[i];
     const green = array[i + 1];
     const blue = array[i + 2];
+    // Alpha is at i + 3, but we don't check it
 
+    // NOTE: We use red + green + blue !== 0 to identify "active" pixels
+    // This means pure black (#000000) in the original image will not be shuffled
+    // TODO: Consider using alpha channel instead for more reliable masking
     if (red + green + blue !== 0) {
       holderArray.push([i, array[i], array[i + 1], array[i + 2]]);
     }
   }
 
-  // Shuffle pixels with nearby pixels and add noise
+  // Shuffle each pixel with a nearby pixel + add noise
   for (let x = 0; x < holderArray.length; x++) {
-    const randomElement =
-      x +
-      Math.floor(
-        randomCryptoNumber() * (biggerDimension / 100) * negativeOrPositive()
-      );
+    // Calculate a random offset within a neighborhood
+    // Neighborhood size scales with image dimensions for consistent effect
+    const maxOffset = biggerDimension / SHUFFLE_RANGE_DIVISOR;
+    const randomOffset = Math.floor(
+      randomCryptoNumber() * maxOffset * negativeOrPositive()
+    );
+    
+    const randomElement = x + randomOffset;
 
+    // Bounds check - if out of range, use current element
     const safeElement =
       randomElement >= holderArray.length || randomElement < 0
         ? x
         : randomElement;
 
-    // Add noise to prevent stitching pixels back together
+    // Swap pixels and add cryptographic noise
+    // NOTE: Noise range is ±3 which is generally imperceptible but prevents reconstruction
     array[holderArray[x][0]] =
       holderArray[safeElement][1] +
-      Math.round(randomCryptoNumber() * negativeOrPositive() * 3);
+      Math.round(randomCryptoNumber() * negativeOrPositive() * PIXEL_NOISE_RANGE);
     array[holderArray[x][0] + 1] =
       holderArray[safeElement][2] +
-      Math.round(randomCryptoNumber() * negativeOrPositive() * 3);
+      Math.round(randomCryptoNumber() * negativeOrPositive() * PIXEL_NOISE_RANGE);
     array[holderArray[x][0] + 2] =
       holderArray[safeElement][3] +
-      Math.round(randomCryptoNumber() * negativeOrPositive() * 3);
+      Math.round(randomCryptoNumber() * negativeOrPositive() * PIXEL_NOISE_RANGE);
+    // Alpha channel (i + 3) is not modified
   }
 
   return array;

@@ -1,65 +1,112 @@
 /**
- * Drawing tools module - handles paint, blur, and undo operations
+ * Drawing Tools Module
+ * 
+ * Provides the core drawing functions for painting, blurring, and undoing
+ * operations on the canvas. Supports multiple brush types: round (freehand),
+ * area (rectangle), and tap (single click).
+ * 
+ * @module modules/drawing
  */
 
+import { BRUSH_TYPES, CURSOR_SIZE_SCALE, CURSOR_BORDER_OFFSET } from '../utils/constants.js';
+
 /**
- * Draw a stroke path between two points
+ * Draw a smooth stroke path between two points (round brush mode)
+ * 
+ * Creates a continuous stroke by drawing a line segment between two points
+ * with circles at each end. This is called repeatedly during mousemove to
+ * create smooth, continuous brush strokes without gaps.
+ * 
  * @param {CanvasRenderingContext2D} pathCtx - Canvas context to draw on
- * @param {number} x1 - Start X coordinate
- * @param {number} y1 - Start Y coordinate
- * @param {number} x2 - End X coordinate
- * @param {number} y2 - End Y coordinate
- * @param {number} r - Brush radius
- * @param {string} paintColor - Color to paint with
+ * @param {number} x1 - Starting X coordinate (previous position)
+ * @param {number} y1 - Starting Y coordinate (previous position)
+ * @param {number} x2 - Ending X coordinate (current position)
+ * @param {number} y2 - Ending Y coordinate (current position)
+ * @param {number} r - Brush radius in pixels
+ * @param {string} paintColor - Color to paint (hex, rgb, or named color)
+ * 
+ * @example
+ * // Draw a stroke from previous mouse position to current
+ * interpolatePath(ctx, lastX, lastY, currentX, currentY, 25, '#000000');
  */
 export function interpolatePath(pathCtx, x1, y1, x2, y2, r, paintColor) {
+  // TODO: Add input validation for coordinates and radius
+  if (r <= 0) {
+    console.warn('interpolatePath: Brush radius must be positive');
+    return;
+  }
+  
   pathCtx.strokeStyle = paintColor;
   pathCtx.fillStyle = paintColor;
 
-  // Draw line from last point
+  // Draw line segment connecting the two points
   pathCtx.beginPath();
   pathCtx.moveTo(x1, y1);
   pathCtx.lineTo(x2, y2);
-  pathCtx.closePath();
   pathCtx.lineWidth = 2 * r;
+  pathCtx.lineCap = 'round'; // Smooth line endings
+  pathCtx.lineJoin = 'round'; // Smooth corners
   pathCtx.stroke();
 
-  // Draw circle at the end
+  // Draw circle at the endpoint to ensure coverage
+  // This prevents gaps when the mouse moves quickly
   pathCtx.beginPath();
   pathCtx.arc(x2, y2, r, 0, Math.PI * 2);
-  pathCtx.closePath();
   pathCtx.fill();
 }
 
 /**
- * Draw a single tap/click
+ * Draw a single circular stamp at a point (tap mode)
+ * 
+ * Creates a filled circle at the specified coordinates. Used for single-click
+ * editing or when the brush is in "tap" mode.
+ * 
  * @param {CanvasRenderingContext2D} pathCtx - Canvas context to draw on
- * @param {number} mouseX - X coordinate
- * @param {number} mouseY - Y coordinate
- * @param {number} r - Brush radius
- * @param {string} paintColor - Color to paint with
+ * @param {number} mouseX - X coordinate of tap location
+ * @param {number} mouseY - Y coordinate of tap location
+ * @param {number} r - Radius of the circle in pixels
+ * @param {string} paintColor - Fill color for the circle
+ * 
+ * @example
+ * // Draw a 50px circle at coordinates (100, 200)
+ * tapDraw(ctx, 100, 200, 50, '#FF0000');
  */
 export function tapDraw(pathCtx, mouseX, mouseY, r, paintColor) {
-  pathCtx.strokeStyle = paintColor;
+  if (r <= 0) {
+    console.warn('tapDraw: Brush radius must be positive');
+    return;
+  }
+  
   pathCtx.fillStyle = paintColor;
 
   pathCtx.beginPath();
   pathCtx.arc(mouseX, mouseY, r, 0, Math.PI * 2);
-  pathCtx.closePath();
   pathCtx.fill();
 }
 
 /**
- * Draw a rectangular area
+ * Draw a rectangular area (area/rectangle brush mode)
+ * 
+ * Draws a filled rectangle from a starting point to current mouse position.
+ * Used for quickly covering large rectangular areas. The function is called
+ * during mouse drag to show live preview.
+ * 
+ * NOTE: This function clears the canvas before drawing to show only the
+ * current rectangle preview (not accumulated rectangles).
+ * 
  * @param {CanvasRenderingContext2D} pathCtx - Canvas context to draw on
- * @param {number} mouseX - Current X coordinate
- * @param {number} mouseY - Current Y coordinate
- * @param {number} mouseX_start - Start X coordinate
- * @param {number} mouseY_start - Start Y coordinate
- * @param {boolean} redraw - Whether to redraw the canvas first
- * @param {string} paintColor - Color to paint with
- * @param {HTMLCanvasElement} canvas - Main canvas
- * @param {HTMLCanvasElement} holderCanvas - Holder canvas with original image
+ * @param {number} mouseX - Current X coordinate (drag position)
+ * @param {number} mouseY - Current Y coordinate (drag position)
+ * @param {number} mouseX_start - Starting X coordinate (mousedown position)
+ * @param {number} mouseY_start - Starting Y coordinate (mousedown position)
+ * @param {boolean} redraw - If true, redraw the holder canvas before drawing rectangle
+ * @param {string} paintColor - Rectangle fill/stroke color
+ * @param {HTMLCanvasElement} canvas - Main canvas (for dimensions)
+ * @param {HTMLCanvasElement} holderCanvas - Canvas with image state before drag started
+ * 
+ * @example
+ * // During mouse drag: show preview rectangle
+ * areaDraw(ctx, currentX, currentY, startX, startY, true, '#000', canvas, holderCanvas);
  */
 export function areaDraw(
   pathCtx,
@@ -72,75 +119,104 @@ export function areaDraw(
   canvas,
   holderCanvas
 ) {
-  // Clear any previous drawings and restore image
+  // TODO: Validate all parameters
+  if (!pathCtx || !canvas) {
+    console.error('areaDraw: Missing required parameters');
+    return;
+  }
+  
+  // Clear the canvas to remove previous rectangle preview
   pathCtx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Redraw image if needed
-  if (redraw) {
+  // Restore the original image if requested
+  // This is typically true for the main canvas, false for temp canvas
+  if (redraw && holderCanvas) {
     pathCtx.drawImage(holderCanvas, 0, 0);
   }
 
-  pathCtx.beginPath();
-
-  // Calculate width and height based on start and current positions
+  // Calculate rectangle dimensions
+  // Width and height can be negative if dragging up/left from start point
   const width = mouseX - mouseX_start;
   const height = mouseY - mouseY_start;
 
-  // Draw rectangle
-  pathCtx.rect(mouseX_start, mouseY_start, width, height);
-  pathCtx.strokeStyle = paintColor;
+  // Draw filled rectangle with stroke outline
   pathCtx.fillStyle = paintColor;
-  pathCtx.lineWidth = 10;
-  pathCtx.stroke();
+  pathCtx.strokeStyle = paintColor;
+  pathCtx.lineWidth = 10; // FIXME: This should scale with zoom/canvas size
+  
+  pathCtx.beginPath();
+  pathCtx.rect(mouseX_start, mouseY_start, width, height);
   pathCtx.fill();
+  pathCtx.stroke();
 }
 
 /**
- * Create a custom cursor based on brush size
- * @param {HTMLCanvasElement} canvas - The main canvas
- * @param {number} brushSize - Size of the brush
- * @param {string} brush - Brush type
+ * Create and set a custom cursor matching the brush size
+ * 
+ * Generates a circular cursor preview that matches the actual brush size,
+ * helping users see exactly where and how large their brush strokes will be.
+ * The cursor includes both black and white circles for visibility on any background.
+ * 
+ * For area/rectangle mode, uses the standard crosshair cursor.
+ * 
+ * @param {HTMLCanvasElement} canvas - Main canvas element (for cursor attachment and scaling)
+ * @param {number} brushSize - Brush radius in canvas pixels
+ * @param {string} brush - Brush type ('round', 'area', or 'tap')
+ * 
+ * @example
+ * // Update cursor when brush size changes
+ * setCursor(canvas, 50, 'round'); // Shows 50px radius circle cursor
+ * setCursor(canvas, 100, 'area'); // Shows crosshair
  */
 export function setCursor(canvas, brushSize, brush) {
-  if (brush === 'area') {
+  // TODO: Add parameter validation
+  if (!canvas) {
+    console.error('setCursor: Canvas element is required');
+    return;
+  }
+  
+  // Use standard crosshair for rectangular selection
+  if (brush === BRUSH_TYPES.AREA) {
     canvas.style.cursor = 'crosshair';
     return;
   }
 
+  // OPTIMIZE: Could cache cursor images to avoid regenerating on every call
+  // Key cache by: `${brushSize}_${scaleX}` and reuse if available
+  
+  // Create a temporary canvas for the cursor image
   const cursorCanvas = document.createElement('canvas');
   const scaleX = canvas.getBoundingClientRect().width / canvas.width;
-  cursorCanvas.width = brushSize * 2 * scaleX;
-  cursorCanvas.height = brushSize * 2 * scaleX;
+  const cursorSize = brushSize * CURSOR_SIZE_SCALE * scaleX;
+  
+  cursorCanvas.width = cursorSize;
+  cursorCanvas.height = cursorSize;
   const cursorCtx = cursorCanvas.getContext('2d');
 
-  // Black circle
+  const centerX = cursorCanvas.width / 2;
+  const centerY = cursorCanvas.height / 2;
+  const radius = brushSize * scaleX;
+
+  // Draw black circle outline (visible on light backgrounds)
   cursorCtx.strokeStyle = '#000000';
+  cursorCtx.lineWidth = 2;
   cursorCtx.beginPath();
-  cursorCtx.arc(
-    cursorCanvas.width / 2,
-    cursorCanvas.height / 2,
-    brushSize * scaleX - 2,
-    0,
-    Math.PI * 2
-  );
-  cursorCtx.closePath();
+  cursorCtx.arc(centerX, centerY, radius - CURSOR_BORDER_OFFSET, 0, Math.PI * 2);
   cursorCtx.stroke();
 
-  // White circle for visibility against dark backgrounds
+  // Draw white circle outline (visible on dark backgrounds)
+  // Slightly offset from black circle for layered effect
   cursorCtx.strokeStyle = '#ffffff';
+  cursorCtx.lineWidth = 1;
   cursorCtx.beginPath();
-  cursorCtx.arc(
-    cursorCanvas.width / 2,
-    cursorCanvas.height / 2,
-    brushSize * scaleX - 1,
-    0,
-    Math.PI * 2
-  );
-  cursorCtx.closePath();
+  cursorCtx.arc(centerX, centerY, radius - (CURSOR_BORDER_OFFSET - 1), 0, Math.PI * 2);
   cursorCtx.stroke();
 
+  // Convert canvas to data URL and set as custom cursor
   const cursorDataURL = cursorCanvas.toDataURL();
-  canvas.style.cursor = `url(${cursorDataURL}) ${cursorCanvas.width / 2} ${
-    cursorCanvas.height / 2
-  }, auto`;
+  const hotspotX = cursorCanvas.width / 2;
+  const hotspotY = cursorCanvas.height / 2;
+  
+  // NOTE: Fallback to 'auto' cursor if custom cursor fails to load
+  canvas.style.cursor = `url(${cursorDataURL}) ${hotspotX} ${hotspotY}, auto`;
 }

@@ -1,6 +1,15 @@
 /**
- * Main application entry point
- * Substance Scrubber - Modern anonymization tool for harm reduction
+ * Main Application Entry Point
+ * Substance Scrubber - Privacy-focused image anonymization tool
+ * 
+ * This is the main initialization file that:
+ * - Sets up the application state
+ * - Initializes all canvases
+ * - Attaches event handlers
+ * - Manages UI interactions
+ * - Coordinates between different modules
+ * 
+ * @module main
  */
 
 import './styles/main.css';
@@ -10,27 +19,72 @@ import { saveImage } from './modules/imageProcessing.js';
 import { loadImage, setupDragAndDrop } from './modules/imageLoader.js';
 import { rotateCanvas } from './modules/rotation.js';
 import { createEventHandlers } from './modules/eventHandlers.js';
+import { 
+  DEFAULT_BRUSH_SIZE, 
+  DEFAULT_BLUR_AMOUNT, 
+  DEFAULT_PAINTING_MODE,
+  DEFAULT_BRUSH_TYPE,
+  DEFAULT_PAINT_COLOR,
+  BRUSH_ADJUSTMENT_FACTOR,
+  PAINTING_MODES,
+  BRUSH_TYPES,
+  THEME_STORAGE_KEY,
+  THEMES
+} from './utils/constants.js';
 import jscolor from '@eastdesire/jscolor';
 
-// Application state
+/**
+ * Application State
+ * 
+ * Central state object containing all user preferences and current settings.
+ * This could be refactored into a more structured state management system
+ * (e.g., using a state management library) for better scalability.
+ * 
+ * TODO: Consider using a proper state management pattern (observer/pub-sub)
+ * TODO: Persist user preferences to localStorage
+ * 
+ * @property {string} filename - Current loaded image filename
+ * @property {number} brushSize - Current brush radius in pixels
+ * @property {number} blurAmount - Current blur radius (0-150)
+ * @property {number} brushAdjustment - Factor for calculating brush size from slider
+ * @property {string} painting - Current mode: 'blur', 'paint', or 'undo'
+ * @property {string} brush - Current brush type: 'round', 'area', or 'tap'
+ * @property {string} paintColor - Current paint color (hex format)
+ * @property {Object|null} imageMeta - Metadata about loaded image
+ */
 const state = {
   filename: '',
-  brushSize: 50,
-  blurAmount: 75,
-  brushAdjustment: 800,
-  painting: 'blur', // 'blur', 'paint', or 'undo'
-  brush: 'round', // 'round', 'area', or 'tap'
-  paintColor: '#000000',
+  brushSize: DEFAULT_BRUSH_SIZE,
+  blurAmount: DEFAULT_BLUR_AMOUNT,
+  brushAdjustment: BRUSH_ADJUSTMENT_FACTOR,
+  painting: DEFAULT_PAINTING_MODE,
+  brush: DEFAULT_BRUSH_TYPE,
+  paintColor: DEFAULT_PAINT_COLOR,
   imageMeta: null,
 };
 
-// Initialize application
+/**
+ * Initialize the application
+ * 
+ * Main initialization function called when DOM is ready. Sets up:
+ * - Canvas elements
+ * - Event handlers
+ * - UI controls
+ * - Network status monitoring
+ * - Theme preferences
+ * - Drag and drop
+ * 
+ * FIXME: This function is quite long (460 lines) - consider breaking into smaller functions
+ * TODO: Add error boundary to catch initialization errors
+ */
 function init() {
-  const canvases = setupCanvases();
-  const { canvas } = canvases;
+  try {
+    const canvases = setupCanvases();
+    const { canvas } = canvases;
 
-  setupNetworkBanner();
-  setupAccessibleControls();
+    // Setup UI and accessibility features
+    setupNetworkBanner();
+    setupAccessibleControls();
 
   // Setup event handlers
   const handlers = createEventHandlers(canvases, state);
@@ -208,10 +262,37 @@ function init() {
   }
 
   updateCanvasGuidance(state, canvas);
+  } catch (error) {
+    // FIXME: Display user-friendly error message instead of just console
+    console.error('Fatal error during initialization:', error);
+    const body = document.body;
+    if (body) {
+      body.innerHTML = `
+        <div style="padding: 40px; text-align: center; font-family: sans-serif;">
+          <h1 style="color: #ef4444;">Initialization Error</h1>
+          <p>The application failed to initialize. Please refresh the page and try again.</p>
+          <p style="color: #666; font-size: 14px;">Error: ${error.message || 'Unknown error'}</p>
+          <button onclick="location.reload()" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">
+            Reload Page
+          </button>
+        </div>
+      `;
+    }
+  }
 }
 
 /**
  * Setup dark mode theme toggle
+ * 
+ * Initializes theme preference based on:
+ * 1. Saved preference in localStorage
+ * 2. System preference (prefers-color-scheme)
+ * 3. Default to light mode
+ * 
+ * Also watches for system theme changes and updates accordingly.
+ * 
+ * TODO: Add theme transition animations
+ * TODO: Add more theme options (high contrast, etc.)
  */
 function setupThemeToggle() {
   const themeToggle = document.getElementById('themeToggle');
@@ -248,35 +329,67 @@ function setupThemeToggle() {
     });
 }
 
+/**
+ * Setup network status banner
+ * 
+ * Displays a persistent banner informing users of their network status.
+ * This is a key privacy feature - users should understand that being online
+ * means potential network activity (though the app itself doesn't upload anything).
+ * 
+ * NOTE: navigator.onLine is not 100% reliable - it only detects network interface status,
+ * not actual internet connectivity. Users should still be educated about privacy.
+ */
 function setupNetworkBanner() {
   const banner = document.getElementById('networkBanner');
-  if (!banner) return;
+  if (!banner) {
+    console.warn('Network banner element not found');
+    return;
+  }
 
   const updateStatus = () => {
     if (navigator.onLine) {
       banner.textContent =
-        'Online detected — for maximum privacy, toggle airplane mode or offline before loading photos.';
+        '⚠️ Online detected — for maximum privacy, toggle airplane mode before loading photos.';
       banner.className = 'status-banner warning';
     } else {
       banner.textContent =
-        'Offline mode: all processing stays on this device. You can safely scrub images without connectivity.';
+        '✓ Offline mode: all processing stays on this device. You can safely scrub images without connectivity.';
       banner.className = 'status-banner success';
     }
     banner.style.display = 'flex';
   };
 
+  // Listen for network status changes
   window.addEventListener('online', updateStatus);
   window.addEventListener('offline', updateStatus);
+  
+  // Set initial status
   updateStatus();
 }
 
+/**
+ * Setup accessibility features
+ * 
+ * Ensures keyboard navigation works properly:
+ * - Makes file input label keyboard-activatable
+ * - Sets tabindex on all interactive elements
+ * - Enables proper focus management
+ * 
+ * TODO: Add skip-to-main-content link
+ * TODO: Add keyboard shortcut documentation
+ * TODO: Test with actual screen readers (NVDA, JAWS)
+ */
 function setupAccessibleControls() {
+  // Make file input label keyboard accessible
   const openLabel = document.querySelector('label[for="file-input"]');
   const fileInput = document.getElementById('file-input');
   if (openLabel && fileInput) {
     addKeyboardActivation(openLabel, () => fileInput.click());
+  } else {
+    console.warn('File input elements not found for accessibility setup');
   }
 
+  // Ensure all interactive elements are keyboard accessible
   document
     .querySelectorAll(
       'input[type="radio"], input[type="range"], button, a, [role="button"]'
@@ -359,7 +472,25 @@ function updateCanvasGuidance(currentState, canvas) {
   guidance.style.display = 'flex';
 }
 
+/**
+ * Clear all canvases and reset file input
+ * 
+ * This is a privacy/hygiene feature that removes all image data from memory.
+ * Important for shared computers or when processing multiple images.
+ * 
+ * Process:
+ * 1. Resize all canvases to 1x1 (minimizes memory footprint)
+ * 2. Clear pixel data
+ * 3. Reset file input to remove file reference
+ * 
+ * NOTE: This doesn't guarantee memory is freed immediately (JS garbage collection)
+ * but it removes all references so GC can clean up.
+ * 
+ * @param {Object} canvases - Canvas objects to clear
+ */
 function clearSession(canvases) {
+  // TODO: Add confirmation dialog if there are unsaved changes
+  
   const canvasList = [
     canvases.canvas,
     canvases.tempCanvas,
@@ -370,15 +501,23 @@ function clearSession(canvases) {
   ];
 
   canvasList.forEach((canvasEl) => {
-    if (!canvasEl) return;
+    if (!canvasEl) {
+      console.warn('Null canvas in clearSession');
+      return;
+    }
     const ctx = canvasEl.getContext('2d');
+    
+    // Resize to 1x1 to minimize memory (canvas clears on resize)
     canvasEl.width = 1;
     canvasEl.height = 1;
+    
+    // Explicitly clear for good measure
     if (ctx) {
-      ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
+      ctx.clearRect(0, 0, 1, 1);
     }
   });
 
+  // Clear file input to remove file reference
   const fileInput = document.getElementById('file-input');
   if (fileInput) {
     fileInput.value = '';
