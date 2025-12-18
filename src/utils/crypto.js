@@ -27,9 +27,19 @@ export function randomCryptoNumber() {
   // OPTIMIZE: Could use a larger buffer and cache values for better performance
   // if this function is called repeatedly in tight loops
   if (!window.crypto || !window.crypto.getRandomValues) {
-    // FIXME: Consider a polyfill or graceful fallback for older browsers
-    console.error('Crypto API not available. Privacy features may be compromised.');
-    return Math.random(); // Fallback to Math.random() - not cryptographically secure!
+    // Show critical warning to user - crypto is essential for privacy
+    const warningMessage = 'CRITICAL: Secure random number generation is not available in your browser. ' +
+                         'Privacy features may be compromised. Please use a modern browser (Chrome, Firefox, Edge, Safari).';
+    console.error(warningMessage);
+    
+    // Try to show warning to user
+    if (typeof alert !== 'undefined') {
+      alert(warningMessage);
+    }
+    
+    // Still fallback to Math.random() to allow app to function
+    // but user has been warned
+    return Math.random();
   }
   
   const buf = new Uint8Array(1);
@@ -74,9 +84,22 @@ export function negativeOrPositive() {
  * scale(1920, 10, 2500, 0.1, 0.015); // Returns ~0.03
  */
 export function scale(num, inMin, inMax, outMin, outMax) {
-  // TODO: Add validation to ensure inMin !== inMax to prevent division by zero
+  // Validate input parameters
+  if (typeof num !== 'number' || isNaN(num)) {
+    console.warn('scale(): Invalid number provided, returning outMin');
+    return outMin;
+  }
+  
+  // Prevent division by zero
   if (inMin === inMax) {
     console.warn('scale(): Input range has zero width, returning outMin');
+    return outMin;
+  }
+  
+  // Validate ranges
+  if (typeof inMin !== 'number' || typeof inMax !== 'number' || 
+      typeof outMin !== 'number' || typeof outMax !== 'number') {
+    console.error('scale(): All parameters must be numbers');
     return outMin;
   }
   

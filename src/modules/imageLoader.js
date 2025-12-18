@@ -9,7 +9,7 @@
  */
 
 import { extractExifData, displayExifData } from './exifHandler.js';
-import { MAX_IMAGE_DIMENSION } from '../utils/constants.js';
+import { MAX_IMAGE_DIMENSION, MAX_FILE_SIZE } from '../utils/constants.js';
 
 /**
  * Load and process an image file
@@ -41,13 +41,20 @@ import { MAX_IMAGE_DIMENSION } from '../utils/constants.js';
  * console.log(`Loaded ${metadata.filename} at ${metadata.width}x${metadata.height}`);
  */
 export async function loadImage(file, canvases, onImageLoaded) {
-  // TODO: Validate file parameter
+  // Validate file parameter
   if (!file) {
     throw new Error('No file provided to loadImage');
   }
   
   if (!canvases) {
     throw new Error('Canvas objects required for loadImage');
+  }
+  
+  // Validate file size to prevent memory issues
+  if (file.size > MAX_FILE_SIZE) {
+    const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
+    const maxMB = (MAX_FILE_SIZE / (1024 * 1024)).toFixed(0);
+    throw new Error(`File too large (${sizeMB}MB). Maximum size is ${maxMB}MB. Please resize your image before uploading.`);
   }
   
   const {

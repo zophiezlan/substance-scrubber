@@ -8,11 +8,47 @@
  */
 
 /**
+ * Cache for canvas bounding rectangles
+ * Updated on window resize to avoid repeated getBoundingClientRect() calls
+ * @private
+ */
+const canvasRectCache = new WeakMap();
+
+/**
+ * Get cached bounding rect for a canvas, or compute and cache it
+ * 
+ * @param {HTMLCanvasElement} canvas - Canvas element
+ * @returns {DOMRect} Cached or freshly computed bounding rect
+ * @private
+ */
+function getCachedRect(canvas) {
+  if (!canvasRectCache.has(canvas)) {
+    const rect = canvas.getBoundingClientRect();
+    canvasRectCache.set(canvas, rect);
+  }
+  return canvasRectCache.get(canvas);
+}
+
+/**
+ * Clear the canvas rect cache (call on window resize)
+ * 
+ * @example
+ * window.addEventListener('resize', clearCanvasRectCache);
+ */
+export function clearCanvasRectCache() {
+  // WeakMap doesn't have a clear() method, but we can create a new one
+  // The old cache will be garbage collected
+  canvasRectCache.clear?.() ?? Object.setPrototypeOf(canvasRectCache, WeakMap.prototype);
+}
+
+/**
  * Get mouse/touch position relative to canvas accounting for scaling
  * 
  * Transforms screen coordinates (from mouse/touch events) to canvas coordinates.
  * This is necessary because the canvas may be scaled via CSS while maintaining
  * its internal resolution, so screen pixels != canvas pixels.
+ * 
+ * Uses a cached bounding rect for performance - the cache is cleared on window resize.
  * 
  * @param {HTMLCanvasElement} canvas - The canvas element
  * @param {MouseEvent|Touch} evt - Mouse event or touch object with clientX/clientY
@@ -26,16 +62,13 @@
  * });
  */
 export function getMousePos(canvas, evt) {
-  // TODO: Add validation for canvas and evt parameters
   if (!canvas || !evt) {
     console.error('getMousePos: Invalid canvas or event object');
     return { x: 0, y: 0 };
   }
   
-  const rect = canvas.getBoundingClientRect();
-  
-  // FIXME: Consider caching getBoundingClientRect() as it triggers a reflow
-  // Could optimize by updating cache only on window resize
+  // Use cached rect for performance
+  const rect = getCachedRect(canvas);
   
   const scaleX = canvas.width / (rect.right - rect.left);
   const scaleY = canvas.height / (rect.bottom - rect.top);

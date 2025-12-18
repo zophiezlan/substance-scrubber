@@ -13,8 +13,8 @@
  */
 
 import './styles/main.css';
-import { setupCanvases } from './utils/canvas.js';
-import { setCursor } from './modules/drawing.js';
+import { setupCanvases, clearCanvasRectCache } from './utils/canvas.js';
+import { setCursor, clearCursorCache } from './modules/drawing.js';
 import { saveImage } from './modules/imageProcessing.js';
 import { loadImage, setupDragAndDrop } from './modules/imageLoader.js';
 import { rotateCanvas } from './modules/rotation.js';
@@ -246,8 +246,24 @@ function init() {
   // Setup theme toggle
   setupThemeToggle();
 
-  // Setup canvas guidance updates
-  window.addEventListener('resize', () => updateCanvasGuidance(state, canvas));
+  // Setup canvas guidance updates and cache clearing on resize
+  // Use debounce to avoid excessive calls during resize
+  let resizeTimeout;
+  window.addEventListener('resize', () => {
+    // Clear caches immediately for accurate positioning
+    clearCanvasRectCache();
+    clearCursorCache();
+    
+    // Debounce the canvas guidance update
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+      updateCanvasGuidance(state, canvas);
+      // Update cursor for current brush size
+      if (state.imageMeta) {
+        setCursor(canvas, state.brushSize, state.brush);
+      }
+    }, 150);
+  });
 
   // Setup hygiene control
   const clearSessionButton = document.getElementById('clearSession');

@@ -11,6 +11,23 @@
 import { BRUSH_TYPES, CURSOR_SIZE_SCALE, CURSOR_BORDER_OFFSET } from '../utils/constants.js';
 
 /**
+ * Cache for generated cursor images
+ * Key format: "size_scale" e.g., "50_1.5"
+ * @private
+ */
+const cursorCache = new Map();
+
+/**
+ * Clear the cursor cache (useful when memory needs to be freed)
+ * 
+ * @example
+ * clearCursorCache(); // Free up memory
+ */
+export function clearCursorCache() {
+  cursorCache.clear();
+}
+
+/**
  * Draw a smooth stroke path between two points (round brush mode)
  * 
  * Creates a continuous stroke by drawing a line segment between two points
@@ -169,7 +186,6 @@ export function areaDraw(
  * setCursor(canvas, 100, 'area'); // Shows crosshair
  */
 export function setCursor(canvas, brushSize, brush) {
-  // TODO: Add parameter validation
   if (!canvas) {
     console.error('setCursor: Canvas element is required');
     return;
@@ -181,12 +197,21 @@ export function setCursor(canvas, brushSize, brush) {
     return;
   }
 
-  // OPTIMIZE: Could cache cursor images to avoid regenerating on every call
-  // Key cache by: `${brushSize}_${scaleX}` and reuse if available
-  
-  // Create a temporary canvas for the cursor image
-  const cursorCanvas = document.createElement('canvas');
+  // Calculate scale for cursor
   const scaleX = canvas.getBoundingClientRect().width / canvas.width;
+  
+  // Create cache key
+  const cacheKey = `${brushSize}_${scaleX.toFixed(3)}`;
+  
+  // Check cache first
+  if (cursorCache.has(cacheKey)) {
+    const cachedCursor = cursorCache.get(cacheKey);
+    canvas.style.cursor = cachedCursor;
+    return;
+  }
+  
+  // Generate new cursor if not in cache
+  const cursorCanvas = document.createElement('canvas');
   const cursorSize = brushSize * CURSOR_SIZE_SCALE * scaleX;
   
   cursorCanvas.width = cursorSize;
@@ -212,11 +237,23 @@ export function setCursor(canvas, brushSize, brush) {
   cursorCtx.arc(centerX, centerY, radius - (CURSOR_BORDER_OFFSET - 1), 0, Math.PI * 2);
   cursorCtx.stroke();
 
-  // Convert canvas to data URL and set as custom cursor
+  // Convert canvas to data URL and create cursor CSS
   const cursorDataURL = cursorCanvas.toDataURL();
   const hotspotX = cursorCanvas.width / 2;
   const hotspotY = cursorCanvas.height / 2;
   
-  // NOTE: Fallback to 'auto' cursor if custom cursor fails to load
-  canvas.style.cursor = `url(${cursorDataURL}) ${hotspotX} ${hotspotY}, auto`;
+  const cursorCSS = `url(${cursorDataURL}) ${hotspotX} ${hotspotY}, auto`;
+  
+  // Cache the cursor CSS
+  cursorCache.set(cacheKey, cursorCSS);
+  
+  // Limit cache size to prevent memory issues
+  if (cursorCache.size > 50) {
+    // Remove oldest entry (first key in Map)
+    const firstKey = cursorCache.keys().next().value;
+    cursorCache.delete(firstKey);
+  }
+  
+  // Apply cursor
+  canvas.style.cursor = cursorCSS;
 }

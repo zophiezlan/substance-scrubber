@@ -12,6 +12,35 @@
 import { OUTPUT_FILE_SUFFIX, OUTPUT_IMAGE_FORMAT, OUTPUT_IMAGE_QUALITY } from '../utils/constants.js';
 
 /**
+ * Sanitize a filename by removing invalid characters
+ * 
+ * Removes characters that are invalid in filenames across different operating systems:
+ * - Windows: < > : " / \\ | ? *
+ * - Also removes control characters and leading/trailing dots and spaces
+ * 
+ * @param {string} filename - Filename to sanitize
+ * @returns {string} Sanitized filename safe for all platforms
+ * @private
+ */
+function sanitizeFilename(filename) {
+  if (!filename) return 'image';
+  
+  return String(filename)
+    // Remove invalid filename characters
+    .replace(/[<>:"\/\\|?*\x00-\x1F]/g, '')
+    // Replace multiple spaces with single space
+    .replace(/\s+/g, ' ')
+    // Remove leading/trailing dots and spaces
+    .replace(/^\.+/, '')
+    .replace(/\.+$/, '')
+    .trim()
+    // Limit length to 200 characters
+    .substring(0, 200)
+    // Fallback if empty after sanitization
+    || 'image';
+}
+
+/**
  * Save the processed canvas as a PNG file
  * 
  * This function performs the actual EXIF stripping by converting the canvas
@@ -67,10 +96,12 @@ export function saveImage(canvas, filename) {
         
         // Remove file extension from the filename
         const nameWithoutExtension = nameWithoutPath.replace(/\.[^.]*$/, '');
+        
+        // Sanitize filename to remove invalid characters
+        const sanitizedName = sanitizeFilename(nameWithoutExtension);
 
         // Construct output filename with suffix
-        // FIXME: Sanitize filename to remove invalid characters
-        link.download = `${nameWithoutExtension}${OUTPUT_FILE_SUFFIX}.png`;
+        link.download = `${sanitizedName}${OUTPUT_FILE_SUFFIX}.png`;
         
         // Create object URL for the blob
         link.href = URL.createObjectURL(blob);

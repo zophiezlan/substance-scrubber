@@ -15,6 +15,24 @@
 import ExifReader from 'exifreader';
 
 /**
+ * Escape HTML special characters to prevent XSS attacks
+ * 
+ * @param {string} str - String to escape
+ * @returns {string} HTML-safe string
+ * @private
+ */
+function escapeHtml(str) {
+  const htmlEscapeMap = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  };
+  return String(str).replace(/[&<>"']/g, (char) => htmlEscapeMap[char]);
+}
+
+/**
  * Extract EXIF metadata from an image file
  * 
  * Uses the ExifReader library to parse embedded metadata from image files.
@@ -120,9 +138,10 @@ export function displayExifData(exifData, onContinue) {
     // OPTIMIZE: For very long lists, consider pagination or grouping by category
     const exifList = readableKeys
       .map((key) => {
-        // FIXME: Escape HTML in descriptions to prevent XSS
-        const description = String(exifData[key].description || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-        return `<li><strong>${key}:</strong> ${description}</li>`;
+        // Escape HTML in both key and description to prevent XSS
+        const safeKey = escapeHtml(String(key));
+        const safeDescription = escapeHtml(String(exifData[key].description || ''));
+        return `<li><strong>${safeKey}:</strong> ${safeDescription}</li>`;
       })
       .join('');
 
