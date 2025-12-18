@@ -13,6 +13,7 @@ A modern, privacy-focused tool for anonymizing photos of substances and settings
 - ✅ **Multiple Brush Types** - Freehand, rectangle, and tap modes for quick cleanup
 - ✅ **100% Client-Side** - All processing happens in your browser; nothing is uploaded
 - ✅ **Offline PWA** - Works without internet connection, installable on mobile
+- ✅ **Modern UI** - Professional design with dark mode, smooth animations, and responsive layout
 - ✅ **Modern Tech Stack** - Built with Vite, ES6+ modules, and modern best practices
 
 ## Usage
