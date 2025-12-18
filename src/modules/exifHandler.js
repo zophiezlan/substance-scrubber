@@ -66,5 +66,13 @@ export function displayExifData(exifData, onContinue) {
       exifHolder.style.display = 'none';
       if (onContinue) onContinue();
     };
+    continueButton.focus({ preventScroll: true });
   }
+
+  exifHolder.onkeydown = (event) => {
+    if (event.key === 'Escape' && continueButton) {
+      event.preventDefault();
+      continueButton.click();
+    }
+  };
 }

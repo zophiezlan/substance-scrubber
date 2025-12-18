@@ -21,12 +21,16 @@ const state = {
   painting: 'blur', // 'blur', 'paint', or 'undo'
   brush: 'round', // 'round', 'area', or 'tap'
   paintColor: '#000000',
+  imageMeta: null,
 };
 
 // Initialize application
 function init() {
   const canvases = setupCanvases();
   const { canvas } = canvases;
+
+  setupNetworkBanner();
+  setupAccessibleControls();
 
   // Setup event handlers
   const handlers = createEventHandlers(canvases, state);
@@ -142,6 +146,9 @@ function init() {
     saveButton.addEventListener('click', () => {
       if (state.filename) {
         saveImage(canvas, state.filename);
+        showStatus('Image saved. You can clear the session when finished.', 'success');
+      } else {
+        showStatus('Load an image before saving.', 'warning');
       }
     });
   }
@@ -151,17 +158,25 @@ function init() {
   if (rotateButton) {
     rotateButton.addEventListener('click', () => {
       rotateCanvas(canvases);
+      showStatus('Image rotated.', 'info');
     });
   }
 
   // Setup about button
   const aboutButton = document.getElementById('about');
   if (aboutButton) {
+    const info = document.getElementById('imageScrubberInfo');
+    if (info) {
+      info.style.display = 'none';
+    }
+
+    aboutButton.setAttribute('aria-expanded', 'false');
     aboutButton.addEventListener('click', () => {
-      const info = document.getElementById('imageScrubberInfo');
+      const isOpen = info && info.style.display !== 'none';
       if (info) {
-        info.style.display = info.style.display === 'none' ? 'block' : 'none';
+        info.style.display = isOpen ? 'none' : 'block';
       }
+      aboutButton.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
     });
   }
 
@@ -176,6 +191,23 @@ function init() {
 
   // Setup theme toggle
   setupThemeToggle();
+
+  // Setup canvas guidance updates
+  window.addEventListener('resize', () => updateCanvasGuidance(state, canvas));
+
+  // Setup hygiene control
+  const clearSessionButton = document.getElementById('clearSession');
+  if (clearSessionButton) {
+    clearSessionButton.addEventListener('click', () => {
+      clearSession(canvases);
+      state.filename = '';
+      state.imageMeta = null;
+      showStatus('Session cleared from memory.', 'success');
+      updateCanvasGuidance(state, canvas);
+    });
+  }
+
+  updateCanvasGuidance(state, canvas);
 }
 
 /**
@@ -216,6 +248,46 @@ function setupThemeToggle() {
     });
 }
 
+function setupNetworkBanner() {
+  const banner = document.getElementById('networkBanner');
+  if (!banner) return;
+
+  const updateStatus = () => {
+    if (navigator.onLine) {
+      banner.textContent =
+        'Online detected — for maximum privacy, toggle airplane mode or offline before loading photos.';
+      banner.className = 'status-banner warning';
+    } else {
+      banner.textContent =
+        'Offline mode: all processing stays on this device. You can safely scrub images without connectivity.';
+      banner.className = 'status-banner success';
+    }
+    banner.style.display = 'flex';
+  };
+
+  window.addEventListener('online', updateStatus);
+  window.addEventListener('offline', updateStatus);
+  updateStatus();
+}
+
+function setupAccessibleControls() {
+  const openLabel = document.querySelector('label[for="file-input"]');
+  const fileInput = document.getElementById('file-input');
+  if (openLabel && fileInput) {
+    addKeyboardActivation(openLabel, () => fileInput.click());
+  }
+
+  document
+    .querySelectorAll(
+      'input[type="radio"], input[type="range"], button, a, [role="button"]'
+    )
+    .forEach((el) => {
+      if (!el.hasAttribute('tabindex')) {
+        el.setAttribute('tabindex', '0');
+      }
+    });
+}
+
 /**
  * Update theme toggle icon
  * @param {string} theme - Current theme ('light' or 'dark')
@@ -248,14 +320,111 @@ function updateThemeIcon(theme) {
   }
 }
 
+function showStatus(message, type = 'info') {
+  const statusBanner = document.getElementById('statusBanner');
+  if (!statusBanner) return;
+
+  statusBanner.textContent = message;
+  statusBanner.className = `status-banner ${type}`;
+  statusBanner.setAttribute('aria-live', type === 'error' ? 'assertive' : 'polite');
+  statusBanner.style.display = message ? 'flex' : 'none';
+}
+
+function updateCanvasGuidance(currentState, canvas) {
+  const guidance = document.getElementById('canvasGuidance');
+  if (!guidance || !canvas) return;
+
+  if (!currentState.imageMeta) {
+    guidance.textContent =
+      'Load a photo to view resolution and fit guidance. Images larger than 2500px are safely resized for performance.';
+    guidance.className = 'status-banner muted';
+    guidance.style.display = 'flex';
+    return;
+  }
+
+  const { originalWidth, originalHeight, width, height } = currentState.imageMeta;
+  const resized = originalWidth !== width || originalHeight !== height;
+  const scaleMessage = resized
+    ? `Resized from ${originalWidth}×${originalHeight} to ${width}×${height} to keep editing responsive.`
+    : `Using full resolution ${width}×${height}.`;
+
+  const rect = canvas.getBoundingClientRect();
+  const widthScale = rect.width && width ? rect.width / width : 1;
+  const heightScale = rect.height && height ? rect.height / height : 1;
+  const viewScale = Math.min(widthScale || 1, heightScale || 1);
+  const viewportMessage = `Displayed at ${Math.round(viewScale * 100)}% to fit your screen.`;
+
+  guidance.textContent = `${scaleMessage} ${viewportMessage}`;
+  guidance.className = `status-banner ${resized ? 'info' : 'muted'}`;
+  guidance.style.display = 'flex';
+}
+
+function clearSession(canvases) {
+  const canvasList = [
+    canvases.canvas,
+    canvases.tempCanvas,
+    canvases.holderCanvas,
+    canvases.rotationCanvas,
+    canvases.blurredCanvas,
+    canvases.offscreenCanvas,
+  ];
+
+  canvasList.forEach((canvasEl) => {
+    if (!canvasEl) return;
+    const ctx = canvasEl.getContext('2d');
+    canvasEl.width = 1;
+    canvasEl.height = 1;
+    if (ctx) {
+      ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
+    }
+  });
+
+  const fileInput = document.getElementById('file-input');
+  if (fileInput) {
+    fileInput.value = '';
+  }
+}
+
+function addKeyboardActivation(element, callback) {
+  if (!element || typeof callback !== 'function') return;
+
+  const handler = (event) => {
+    const isKeyboard =
+      event.type === 'keydown' && (event.key === 'Enter' || event.key === ' ');
+    if (event.type === 'click' || isKeyboard) {
+      if (isKeyboard) {
+        event.preventDefault();
+      }
+      callback(event);
+    }
+  };
+
+  element.addEventListener('click', handler);
+  element.addEventListener('keydown', handler);
+}
+
 /**
  * Handle file loading
  * @param {File} file - File to load
  * @param {Object} canvases - Canvas objects
  */
 async function handleFileLoad(file, canvases) {
+  if (!file) {
+    showStatus('No file selected. Please choose an image to scrub.', 'warning');
+    return;
+  }
+
+  const isImageType = file && file.type && file.type.startsWith('image/');
+  const isImageName = file && /\.(png|jpe?g|gif|webp|bmp)$/i.test(file.name || '');
+
+  if (!isImageType && !isImageName) {
+    showStatus('Unsupported file type. Please choose an image.', 'error');
+    return;
+  }
+
   try {
-    state.filename = await loadImage(file, canvases, () => {
+    showStatus('Loading image and checking metadata…', 'info');
+    const imageMeta = await loadImage(file, canvases, () => {
       // Update brush size after image is loaded
       const brushSizeSlider = document.getElementById('brushSizeSlider');
       if (brushSizeSlider) {
@@ -269,9 +438,16 @@ async function handleFileLoad(file, canvases) {
         setCursor(canvases.canvas, state.brushSize, state.brush);
       }
     });
+    state.filename = imageMeta.filename;
+    state.imageMeta = imageMeta;
+    updateCanvasGuidance(state, canvases.canvas);
+    showStatus(
+      'EXIF removed and image ready. Paint over critical details before saving.',
+      'success'
+    );
   } catch (error) {
     console.error('Error loading image:', error);
-    alert('Error loading image. Please try again.');
+    showStatus('Error loading image. Please try again with a supported file.', 'error');
   }
 }
 
