@@ -76,7 +76,7 @@ export function createEventHandlers(canvases, state) {
     lastPos = pos;
   };
 
-  const handleMouseUp = (e) => {
+  const handleMouseUp = async (e) => {
     e.preventDefault();
     e.stopPropagation();
     isDown = false;
@@ -90,15 +90,20 @@ export function createEventHandlers(canvases, state) {
 
       blurredCtx.drawImage(rotationCanvas, 0, 0);
 
-      // Pixelate if not undoing
+      // Pixelate if not undoing (now async with Web Worker)
       if (state.painting !== 'undo') {
-        pixelateCanvas(
-          blurredCanvas,
-          blurredCtx,
-          offscreenCanvas,
-          offscreenCtx,
-          canvas
-        );
+        try {
+          await pixelateCanvas(
+            blurredCanvas,
+            blurredCtx,
+            offscreenCanvas,
+            offscreenCtx,
+            canvas
+          );
+        } catch (error) {
+          console.error('Pixelation failed:', error);
+          // Continue with blur even if pixelation fails
+        }
       }
 
       // Apply blur

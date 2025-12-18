@@ -7,8 +7,11 @@
  * 
  * The algorithm:
  * 1. Downsamples the image to create pixelation effect
- * 2. Shuffles pixels within a local neighborhood using crypto-random positions
+ * 2. Shuffles pixels within a local neighborhood using crypto-random positions (via Web Worker)
  * 3. Adds random noise to each pixel to prevent pixel-perfect reconstruction
+ * 
+ * PERFORMANCE: Pixel shuffling is offloaded to a Web Worker to keep the UI responsive
+ * during processing of large images.
  * 
  * @module modules/pixelation
  * @see {@link https://en.wikipedia.org/wiki/Pixelization}
@@ -29,6 +32,24 @@ import {
   SHUFFLE_RANGE_DIVISOR,
 } from '../utils/constants.js';
 
+// Import Web Worker for pixel shuffling
+import PixelShuffleWorker from '../workers/pixelShuffle.worker.js?worker';
+
+// Worker instance (reused across calls for efficiency)
+let shuffleWorker = null;
+
+/**
+ * Get or create the pixel shuffle worker instance
+ * @returns {Worker} Worker instance
+ * @private
+ */
+function getShuffleWorker() {
+  if (!shuffleWorker) {
+    shuffleWorker = new PixelShuffleWorker();
+  }
+  return shuffleWorker;
+}
+
 /**
  * Pixelate and shuffle canvas pixels for enhanced privacy
  * 
@@ -37,16 +58,21 @@ import {
  * approach (pixelation + shuffling + noise) makes it extremely difficult to
  * reverse engineer the original image content.
  * 
+ * ASYNC: This function now returns a Promise as pixel shuffling is performed
+ * in a Web Worker to keep the UI responsive.
+ * 
  * @param {HTMLCanvasElement} inCanvas - Canvas containing the area to pixelate
  * @param {CanvasRenderingContext2D} inCtx - Context for the input canvas
  * @param {HTMLCanvasElement} offscreenCanvas - Temporary canvas for processing
  * @param {CanvasRenderingContext2D} offscreenCtx - Context for offscreen canvas
  * @param {HTMLCanvasElement} mainCanvas - Main canvas (used for dimension scaling)
+ * @returns {Promise<void>} Resolves when pixelation is complete
+ * @throws {Error} If canvas parameters are invalid or worker fails
  * 
  * @example
- * pixelateCanvas(blurredCanvas, blurredCtx, offscreenCanvas, offscreenCtx, mainCanvas);
+ * await pixelateCanvas(blurredCanvas, blurredCtx, offscreenCanvas, offscreenCtx, mainCanvas);
  */
-export function pixelateCanvas(
+export async function pixelateCanvas(
   inCanvas,
   inCtx,
   offscreenCanvas,
@@ -108,7 +134,15 @@ export function pixelateCanvas(
 
   // Step 3: Get pixel data and shuffle with crypto-random positions
   const pixelArray = offscreenCtx.getImageData(0, 0, w, h);
-  pixelArray.data = shufflePixels(pixelArray.data, mainCanvas);
+  
+  try {
+    // Shuffle pixels in Web Worker for better performance
+    pixelArray.data = await shufflePixelsAsync(pixelArray.data, mainCanvas);
+  } catch (error) {
+    console.error('Pixel shuffling failed, falling back to synchronous:', error);
+    // Fallback to synchronous shuffling if worker fails
+    pixelArray.data = shufflePixelsSync(pixelArray.data, mainCanvas);
+  }
 
   offscreenCtx.putImageData(pixelArray, 0, 0);
 
@@ -129,11 +163,63 @@ export function pixelateCanvas(
 }
 
 /**
- * Shuffle pixel data with cryptographic randomness for maximum privacy
+ * Shuffle pixel data using Web Worker (async)
  * 
- * Each pixel is swapped with another pixel within a random nearby location,
- * then noise is added to the RGB values. This prevents reconstruction attempts
- * that might try to "unshuffle" the pixels or use statistical analysis.
+ * Offloads pixel shuffling to a Web Worker to keep the main thread responsive.
+ * This is especially important for large images where shuffling can take 100ms+.
+ * 
+ * @param {Uint8ClampedArray} array - Raw pixel data (RGBA format, 4 bytes per pixel)
+ * @param {HTMLCanvasElement} canvas - Reference canvas for dimension calculations
+ * @returns {Promise<Uint8ClampedArray>} Modified pixel data with shuffled and noised pixels
+ * @throws {Error} If worker fails to process the data
+ * 
+ * @private
+ */
+async function shufflePixelsAsync(array, canvas) {
+  return new Promise((resolve, reject) => {
+    const worker = getShuffleWorker();
+    
+    // Create a copy of the pixel data to send to worker
+    const pixelDataCopy = new Uint8ClampedArray(array);
+    
+    // Handle worker response
+    const handleMessage = (event) => {
+      worker.removeEventListener('message', handleMessage);
+      worker.removeEventListener('error', handleError);
+      
+      if (event.data.success) {
+        resolve(new Uint8ClampedArray(event.data.pixelData));
+      } else {
+        reject(new Error(event.data.error || 'Worker processing failed'));
+      }
+    };
+    
+    // Handle worker error
+    const handleError = (error) => {
+      worker.removeEventListener('message', handleMessage);
+      worker.removeEventListener('error', handleError);
+      reject(new Error(`Worker error: ${error.message}`));
+    };
+    
+    worker.addEventListener('message', handleMessage);
+    worker.addEventListener('error', handleError);
+    
+    // Send data to worker
+    worker.postMessage({
+      pixelData: pixelDataCopy,
+      canvasWidth: canvas.width,
+      canvasHeight: canvas.height,
+      shuffleRangeDivisor: SHUFFLE_RANGE_DIVISOR,
+      pixelNoiseRange: PIXEL_NOISE_RANGE
+    });
+  });
+}
+
+/**
+ * Shuffle pixel data synchronously (fallback)
+ * 
+ * Synchronous version of pixel shuffling for fallback when Web Worker fails.
+ * This will block the main thread but ensures functionality.
  * 
  * NOTE: Only non-black pixels are shuffled (to preserve the blur mask)
  * 
@@ -143,9 +229,8 @@ export function pixelateCanvas(
  * 
  * @private
  */
-function shufflePixels(array, canvas) {
+function shufflePixelsSync(array, canvas) {
   // OPTIMIZE: This function is performance-critical for large images
-  // Consider Web Worker for processing if performance becomes an issue
   
   const biggerDimension = Math.max(canvas.width, canvas.height);
   const holderArray = [];
