@@ -81,7 +81,9 @@
           viewBox="0 0 24 24"
           aria-hidden="true"
         >
-          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+          <path
+            d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"
+          />
           <polyline points="17 21 17 13 7 13 7 21" />
           <polyline points="7 3 7 8 15 8" />
         </svg>
@@ -121,7 +123,9 @@
           viewBox="0 0 24 24"
           aria-hidden="true"
         >
-          <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2" />
+          <path
+            d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"
+          />
         </svg>
         <span>Rotate</span>
       </button>
@@ -282,7 +286,13 @@
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 24 24"
         aria-hidden="true"
-        style="width: 18px; height: 18px; display: inline-block; vertical-align: middle; margin-right: 4px;"
+        style="
+          width: 18px;
+          height: 18px;
+          display: inline-block;
+          vertical-align: middle;
+          margin-right: 4px;
+        "
       >
         <circle cx="12" cy="12" r="10" />
         <line x1="12" y1="16" x2="12" y2="12" />
@@ -293,43 +303,58 @@
 
     <!-- About/Help Modal -->
     <div id="imageScrubberInfo" role="dialog" aria-labelledby="info-title">
-      <pre>
+      <div style="text-align: center; margin-bottom: 1em;">
+        <b id="info-title">Substance Scrubber</b>
+      </div>
 
-<center><b id="info-title">Substance Scrubber</b></center>
+      <p>
+        A focused tool for anonymizing drug checking and harm reduction photos by removing identifying metadata and obscuring sensitive details.
+      </p>
 
-A focused tool for anonymizing drug checking and harm reduction photos by removing identifying metadata and obscuring sensitive details.
+      <h3>How to Use:</h3>
 
-<strong>How to Use:</strong>
+      <p>
+        Click or drag an image onto the "Open Image" button. Review any metadata the tool finds, then continue to the editor.
+      </p>
 
-Click or drag an image onto the "Open Image" button. Review any metadata the tool finds, then continue to the editor.
+      <p>After confirming, you can blur or paint over identifying areas:</p>
+      <ul>
+        <li><strong>Blur:</strong> Applies pixelation and blur with cryptographic noise for maximum privacy</li>
+        <li><strong>Paint:</strong> Covers areas with solid color (most secure for faces, tattoos, or backgrounds)</li>
+        <li><strong>Undo:</strong> Restore blurred/painted areas</li>
+      </ul>
 
-After confirming, you can blur or paint over identifying areas:
-• <strong>Blur:</strong> Applies pixelation and blur with cryptographic noise for maximum privacy
-• <strong>Paint:</strong> Covers areas with solid color (most secure for faces, tattoos, or backgrounds)
-• <strong>Undo:</strong> Restore blurred/painted areas
+      <p>Use the sliders to adjust brush size and blur intensity. Choose between:</p>
+      <ul>
+        <li><strong>Brush:</strong> Freehand drawing</li>
+        <li><strong>Rectangle:</strong> Click and drag to cover rectangular areas</li>
+        <li><strong>Tap:</strong> Single clicks to cover specific spots</li>
+      </ul>
 
-Use the sliders to adjust brush size and blur intensity. Choose between:
-• <strong>Brush:</strong> Freehand drawing
-• <strong>Rectangle:</strong> Click and drag to cover rectangular areas
-• <strong>Tap:</strong> Single clicks to cover specific spots
+      <p>
+        When finished, click "Save Image" to download your anonymized photo as a PNG file (max 2500x2500 pixels).
+      </p>
 
-When finished, click "Save Image" to download your anonymized photo as a PNG file (max 2500x2500 pixels).
+      <h3>Privacy & Security:</h3>
 
-<strong>Privacy & Security:</strong>
+      <p>
+        All processing happens entirely in your browser - no data is uploaded or stored anywhere. For maximum safety when sharing drug alerts:
+      </p>
+      <ul>
+        <li><strong>Use offline:</strong> Load the page, then enable airplane mode before opening photos</li>
+        <li><strong>Remove surroundings:</strong> Cover hands, surfaces, packaging, or room details that could identify people or locations</li>
+        <li><strong>Desktop:</strong> <a href="https://github.com/zophiezlan/substance-scrubber/archive/main.zip">Download the tool</a> and run locally</li>
+      </ul>
 
-All processing happens entirely in your browser - no data is uploaded or stored anywhere. For maximum safety when sharing drug alerts:
-• Use offline: Load the page, then enable airplane mode before opening photos
-• Remove surroundings: Cover hands, surfaces, packaging, or room details that could identify people or locations
-• Desktop: <a href="https://github.com/zophiezlan/substance-scrubber/archive/main.zip">Download the tool</a> and run locally
+      <p>
+        The blur function uses cryptographically secure pixel shuffling with noise injection, making it extremely difficult to reverse. For the highest security on critical information, use the paint tool.
+      </p>
 
-The blur function uses cryptographically secure pixel shuffling with noise injection, making it extremely difficult to reverse. For the highest security on critical information, use the paint tool.
+      <h3>Support & Feedback:</h3>
 
-<strong>Support & Feedback:</strong>
-
-Github: <a href="https://github.com/zophiezlan/substance-scrubber" target="_blank" rel="noopener">github.com/zophiezlan/substance-scrubber</a>
-
-Additional privacy resources: <a href="https://docs.google.com/document/d/1615pZB11BhsR0KtvyiXfzfMUBlxZi47HzzhWHIRpxwU/edit" target="_blank" rel="noopener">Privacy Guide</a>
-      </pre>
+      <p>
+        Github: <a href="https://github.com/zophiezlan/substance-scrubber" target="_blank" rel="noopener">github.com/zophiezlan/substance-scrubber</a>
+      </p>
     </div>
 
     <!-- EXIF Information Modal -->
