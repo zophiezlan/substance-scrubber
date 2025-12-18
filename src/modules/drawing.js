@@ -67,14 +67,16 @@ export function interpolatePath(pathCtx, x1, y1, x2, y2, r, paintColor) {
     return;
   }
   
-  // Validate color
-  if (!paintColor || typeof paintColor !== 'string') {
-    console.warn('interpolatePath: Invalid paint color, using default');
-    paintColor = '#000000';
-  }
-  
-  pathCtx.strokeStyle = paintColor;
-  pathCtx.fillStyle = paintColor;
+  // Validate color and use local variable to avoid parameter reassignment
+  const validatedColor = (!paintColor || typeof paintColor !== 'string')
+    ? (() => {
+        console.warn('interpolatePath: Invalid paint color, using default');
+        return '#000000';
+      })()
+    : paintColor;
+
+  pathCtx.strokeStyle = validatedColor;
+  pathCtx.fillStyle = validatedColor;
 
   // Draw line segment connecting the two points
   pathCtx.beginPath();
@@ -128,13 +130,15 @@ export function tapDraw(pathCtx, mouseX, mouseY, r, paintColor) {
     return;
   }
   
-  // Validate color
-  if (!paintColor || typeof paintColor !== 'string') {
-    console.warn('tapDraw: Invalid paint color, using default');
-    paintColor = '#000000';
-  }
-  
-  pathCtx.fillStyle = paintColor;
+  // Validate color and use local variable to avoid parameter reassignment
+  const validatedColor = (!paintColor || typeof paintColor !== 'string')
+    ? (() => {
+        console.warn('tapDraw: Invalid paint color, using default');
+        return '#000000';
+      })()
+    : paintColor;
+
+  pathCtx.fillStyle = validatedColor;
 
   pathCtx.beginPath();
   pathCtx.arc(mouseX, mouseY, r, 0, Math.PI * 2);
@@ -195,12 +199,14 @@ export function areaDraw(
     return;
   }
   
-  // Validate color
-  if (!paintColor || typeof paintColor !== 'string') {
-    console.warn('areaDraw: Invalid paint color, using default');
-    paintColor = '#000000';
-  }
-  
+  // Validate color and use local variable to avoid parameter reassignment
+  const validatedColor = (!paintColor || typeof paintColor !== 'string')
+    ? (() => {
+        console.warn('areaDraw: Invalid paint color, using default');
+        return '#000000';
+      })()
+    : paintColor;
+
   // Clear the canvas to remove previous rectangle preview
   pathCtx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -216,8 +222,8 @@ export function areaDraw(
   const height = mouseY - mouseY_start;
 
   // Draw filled rectangle with stroke outline
-  pathCtx.fillStyle = paintColor;
-  pathCtx.strokeStyle = paintColor;
+  pathCtx.fillStyle = validatedColor;
+  pathCtx.strokeStyle = validatedColor;
   pathCtx.lineWidth = 10; // FIXME: This should scale with zoom/canvas size
   
   pathCtx.beginPath();

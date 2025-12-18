@@ -103,14 +103,16 @@ export async function extractExifData(file) {
  * });
  */
 export function displayExifData(exifData, onContinue) {
-  // TODO: Add parameter validation
-  if (!exifData || typeof exifData !== 'object') {
-    console.warn('displayExifData: Invalid exifData parameter');
-    exifData = {};
-  }
-  
+  // Use local variable to avoid parameter reassignment
+  const validatedExifData = (!exifData || typeof exifData !== 'object')
+    ? (() => {
+        console.warn('displayExifData: Invalid exifData parameter');
+        return {};
+      })()
+    : exifData;
+
   const exifHolder = document.getElementById('exifInformationHolder');
-  
+
   if (!exifHolder) {
     console.error('displayExifData: exifInformationHolder element not found in DOM');
     // Still call onContinue so the app doesn't hang
@@ -120,11 +122,11 @@ export function displayExifData(exifData, onContinue) {
     return;
   }
 
-  const exifKeys = Object.keys(exifData);
-  
+  const exifKeys = Object.keys(validatedExifData);
+
   // Filter to only keys with readable descriptions
   const readableKeys = exifKeys.filter(
-    (key) => exifData[key] && exifData[key].description
+    (key) => validatedExifData[key] && validatedExifData[key].description
   );
 
   // Build the modal content
@@ -144,7 +146,7 @@ export function displayExifData(exifData, onContinue) {
       .map((key) => {
         // Escape HTML in both key and description to prevent XSS
         const safeKey = escapeHtml(String(key));
-        const safeDescription = escapeHtml(String(exifData[key].description || ''));
+        const safeDescription = escapeHtml(String(validatedExifData[key].description || ''));
         return `<li><strong>${safeKey}:</strong> ${safeDescription}</li>`;
       })
       .join('');

@@ -27,7 +27,8 @@ function sanitizeFilename(filename) {
   
   return String(filename)
     // Remove invalid filename characters
-    .replace(/[<>:"\/\\|?*\x00-\x1F]/g, '')
+    // eslint-disable-next-line no-control-regex
+    .replace(/[<>:"/\\|?*\x00-\x1F]/g, '')
     // Replace multiple spaces with single space
     .replace(/\s+/g, ' ')
     // Remove leading/trailing dots and spaces
@@ -74,10 +75,12 @@ export function saveImage(canvas, filename) {
   if (!canvas || !(canvas instanceof HTMLCanvasElement)) {
     throw new Error('Invalid canvas element provided');
   }
-  
-  if (!filename || typeof filename !== 'string') {
+
+  // Use local variable to avoid parameter reassignment
+  let processedFilename = filename;
+  if (!processedFilename || typeof processedFilename !== 'string') {
     console.warn('saveImage: No filename provided, using default');
-    filename = 'image';
+    processedFilename = 'image';
   }
 
   // Return promise for async operation
@@ -97,7 +100,7 @@ export function saveImage(canvas, filename) {
 
         // Extract filename without path (in case full path was provided)
         // Regex handles both forward slashes (Unix) and backslashes (Windows)
-        const nameWithoutPath = filename.replace(/.*[\\/]([^\\/]+)$/, '$1');
+        const nameWithoutPath = processedFilename.replace(/.*[\\/]([^\\/]+)$/, '$1');
         
         // Remove file extension from the filename
         const nameWithoutExtension = nameWithoutPath.replace(/\.[^.]*$/, '');

@@ -44,8 +44,8 @@
 
     <!-- Top Toolbar -->
     <nav id="topBar" role="toolbar" aria-label="Image editing tools" aria-describedby="canvasGuidance">
-      <!-- Open Image -->
-      <div class="topBarDiv">
+      <!-- File Operations Group -->
+      <div class="topBarDiv" data-control-group="file-operations">
         <label
           for="file-input"
           class="customFileOpen controlButton"
@@ -74,12 +74,12 @@
         />
       </div>
 
-      <!-- Save Image -->
       <button
         id="saveButton"
         class="topBarDiv controlButton"
         type="button"
         aria-label="Save anonymized image"
+        data-control-group="file-operations"
       >
         <svg
           class="button-icon"
@@ -96,12 +96,12 @@
         <span>Save Image</span>
       </button>
 
-      <!-- Clear Session -->
       <button
         id="clearSession"
         class="topBarDiv controlButton"
         type="button"
         aria-label="Clear canvases and remove loaded images"
+        data-control-group="file-operations"
       >
         <svg
           class="button-icon"
@@ -116,12 +116,13 @@
         <span>Clear Session</span>
       </button>
 
-      <!-- Rotate Image -->
+      <!-- Transform Operations Group -->
       <button
         id="rotate"
         class="topBarDiv controlButton"
         type="button"
         aria-label="Rotate image 90 degrees clockwise"
+        data-control-group="transform"
       >
         <svg
           class="button-icon"
@@ -136,8 +137,8 @@
         <span>Rotate</span>
       </button>
 
-      <!-- Paint/Blur/Undo Controls -->
-      <div id="paintBlur" class="topBarDiv">
+      <!-- Editing Modes Group -->
+      <div id="paintBlur" class="topBarDiv" data-control-group="editing-modes">
         <form id="paintForm">
           <label>
             <input
@@ -181,8 +182,8 @@
         </form>
       </div>
 
-      <!-- Brush Type Controls -->
-      <div id="brushType" class="topBarDiv">
+      <!-- Brush Tools Group -->
+      <div id="brushType" class="topBarDiv" data-control-group="brush-tools">
         <form id="brushForm">
           <label>
             <input
@@ -220,9 +221,9 @@
         </form>
       </div>
 
-      <!-- Brush Size & Blur Radius Sliders -->
-      <div id="brushSizeDiv" class="topBarDiv">
-        <center>
+      <!-- Brush Settings Group -->
+      <div id="brushSizeDiv" class="topBarDiv" data-control-group="brush-settings">
+        <div style="text-align: center;">
           <label for="brushSizeSlider">Brush Size</label><br />
           <input
             type="range"
@@ -250,7 +251,7 @@
             aria-valuemax="150"
             aria-valuenow="75"
           />
-        </center>
+        </div>
       </div>
     </nav>
 
