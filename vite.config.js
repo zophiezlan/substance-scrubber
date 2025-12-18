@@ -1,8 +1,11 @@
+import process from 'node:process';
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
+const basePath = process.env.VITE_BASE_PATH || './';
+
 export default defineConfig({
-  base: './',
+  base: basePath,
   build: {
     outDir: 'dist',
     sourcemap: true,
@@ -23,10 +26,10 @@ export default defineConfig({
         'scrubber_logo_ios_homescreen.png',
       ],
       manifest: {
-        short_name: 'Image Scrubber',
-        name: 'Image Scrubber - Anonymize Photos',
+        short_name: 'Substance Scrubber',
+        name: 'Substance Scrubber - Anonymize Drug Reporting Photos',
         description:
-          'A tool for anonymizing photographs taken at protests by removing EXIF data and blurring sensitive information',
+          'Purpose-built for anonymizing drug checking and harm reduction photos by removing EXIF data and obscuring sensitive details',
         start_url: './',
         background_color: '#ffffff',
         theme_color: '#ffffff',
