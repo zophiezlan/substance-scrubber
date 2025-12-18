@@ -13,6 +13,10 @@
  */
 
 import ExifReader from 'exifreader';
+import { createFocusTrap } from '../utils/focusTrap.js';
+
+// NOTE: Store focus trap instance for EXIF modal
+let exifModalTrap = null;
 
 /**
  * Escape HTML special characters to prevent XSS attacks
@@ -157,34 +161,52 @@ export function displayExifData(exifData, onContinue) {
     `;
   }
 
-  // Show the modal
-  exifHolder.style.display = 'block';
-  
-  // FIXME: Should set focus trap to prevent tabbing outside modal
-  // FIXME: Should add ARIA attributes for screen readers
+  // Create focus trap for EXIF modal (handles Escape key)
+  if (!exifModalTrap) {
+    exifModalTrap = createFocusTrap(exifHolder, () => {
+      const continueBtn = document.getElementById('continueButtonExif');
+      if (continueBtn) continueBtn.click();
+    });
+  }
 
   // Setup continue button handler
   const continueButton = document.getElementById('continueButtonExif');
   if (continueButton) {
     continueButton.onclick = () => {
+      // Deactivate focus trap before hiding modal
+      if (exifModalTrap) {
+        exifModalTrap.deactivate();
+      }
+      
       exifHolder.style.display = 'none';
+      exifHolder.setAttribute('aria-modal', 'false');
+      
+      // Restore background content for screen readers
+      const mainContent = document.getElementById('topBar');
+      const canvas = document.getElementById('imageCanvas');
+      if (mainContent) mainContent.removeAttribute('aria-hidden');
+      if (canvas) canvas.removeAttribute('aria-hidden');
+      
       if (onContinue && typeof onContinue === 'function') {
         onContinue();
       }
     };
-    
-    // Auto-focus the button for keyboard accessibility
-    // preventScroll prevents page jump which can be jarring
-    setTimeout(() => {
-      continueButton.focus({ preventScroll: true });
-    }, 100);
   }
 
-  // Allow Escape key to close modal (accessibility)
-  exifHolder.onkeydown = (event) => {
-    if (event.key === 'Escape' && continueButton) {
-      event.preventDefault();
-      continueButton.click();
+  // Show the modal with accessibility attributes
+  exifHolder.style.display = 'block';
+  exifHolder.setAttribute('aria-modal', 'true');
+  
+  // Hide background content from screen readers
+  const mainContent = document.getElementById('topBar');
+  const canvas = document.getElementById('imageCanvas');
+  if (mainContent) mainContent.setAttribute('aria-hidden', 'true');
+  if (canvas) canvas.setAttribute('aria-hidden', 'true');
+
+  // Activate focus trap after modal is visible
+  setTimeout(() => {
+    if (exifModalTrap) {
+      exifModalTrap.activate();
     }
-  };
+  }, 100);
 }

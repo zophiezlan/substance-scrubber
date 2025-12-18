@@ -17,6 +17,12 @@
     <title>Substance Scrubber - Anonymize Harm Reduction Photos</title>
   </head>
   <body>
+    <!-- Skip to main content link for keyboard users -->
+    <a href="#imageCanvas" class="skip-link">Skip to image editor</a>
+
+    <!-- Screen reader announcements (hidden, aria-live) -->
+    <div id="sr-announcer" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+
     <!-- Drop Zone Overlay -->
     <div id="drop-zone" aria-label="Drop zone for image files">
       <svg
@@ -37,7 +43,7 @@
     </div>
 
     <!-- Top Toolbar -->
-    <nav id="topBar" role="toolbar" aria-label="Image editing tools">
+    <nav id="topBar" role="toolbar" aria-label="Image editing tools" aria-describedby="canvasGuidance">
       <!-- Open Image -->
       <div class="topBarDiv">
         <label
@@ -217,7 +223,7 @@
       <!-- Brush Size & Blur Radius Sliders -->
       <div id="brushSizeDiv" class="topBarDiv">
         <center>
-          Brush Size<br />
+          <label for="brushSizeSlider">Brush Size</label><br />
           <input
             type="range"
             min="10"
@@ -226,9 +232,12 @@
             class="slider"
             id="brushSizeSlider"
             aria-label="Brush size slider"
+            aria-valuemin="10"
+            aria-valuemax="100"
+            aria-valuenow="55"
           />
           <br />
-          Blur Radius<br />
+          <label for="blurAmountSlider">Blur Radius</label><br />
           <input
             type="range"
             min="40"
@@ -237,6 +246,9 @@
             class="slider"
             id="blurAmountSlider"
             aria-label="Blur radius slider"
+            aria-valuemin="40"
+            aria-valuemax="150"
+            aria-valuenow="75"
           />
         </center>
       </div>
@@ -280,7 +292,7 @@
     </button>
 
     <!-- About Button -->
-    <button id="about" aria-label="About this tool">
+    <button id="about" aria-label="About this tool. Press ? or F1 to open" title="About (? or F1)">
       <svg
         class="button-icon"
         xmlns="http://www.w3.org/2000/svg"
@@ -302,7 +314,7 @@
     </button>
 
     <!-- About/Help Modal -->
-    <div id="imageScrubberInfo" role="dialog" aria-labelledby="info-title">
+    <div id="imageScrubberInfo" role="dialog" aria-labelledby="info-title" aria-modal="false">
       <div style="text-align: center; margin-bottom: 1em;">
         <b id="info-title">Substance Scrubber</b>
       </div>
@@ -310,6 +322,19 @@
       <p>
         A focused tool for anonymizing drug checking and harm reduction photos by removing identifying metadata and obscuring sensitive details.
       </p>
+
+      <h3>Keyboard Shortcuts:</h3>
+      <ul>
+        <li><kbd>Ctrl/Cmd+S</kbd> - Save image</li>
+        <li><kbd>Ctrl/Cmd+O</kbd> - Open image</li>
+        <li><kbd>Ctrl/Cmd+R</kbd> - Rotate image</li>
+        <li><kbd>B</kbd> - Blur mode</li>
+        <li><kbd>P</kbd> - Paint mode</li>
+        <li><kbd>U</kbd> - Undo mode</li>
+        <li><kbd>1</kbd> / <kbd>2</kbd> / <kbd>3</kbd> - Brush / Rectangle / Tap</li>
+        <li><kbd>[</kbd> / <kbd>]</kbd> - Decrease/increase brush size</li>
+        <li><kbd>Esc</kbd> - Close dialog</li>
+      </ul>
 
       <h3>How to Use:</h3>
 
@@ -362,13 +387,16 @@
       id="exifInformationHolder"
       role="dialog"
       aria-labelledby="exif-title"
+      aria-modal="false"
+      aria-describedby="exif-description"
     ></div>
 
     <!-- Main Canvas (visible) -->
     <canvas
       id="imageCanvas"
       role="img"
-      aria-label="Image editing canvas"
+      aria-label="Image editing canvas. Use mouse or touch to blur or paint over sensitive areas."
+      tabindex="-1"
     ></canvas>
 
     <!-- Hidden Working Canvases -->

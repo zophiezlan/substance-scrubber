@@ -19,6 +19,7 @@ import { saveImage } from './modules/imageProcessing.js';
 import { loadImage, setupDragAndDrop } from './modules/imageLoader.js';
 import { rotateCanvas } from './modules/rotation.js';
 import { createEventHandlers } from './modules/eventHandlers.js';
+import { createFocusTrap, addKeyboardActivation } from './utils/focusTrap.js';
 import { 
   DEFAULT_BRUSH_SIZE, 
   DEFAULT_BLUR_AMOUNT, 
@@ -61,6 +62,9 @@ const state = {
   brush: DEFAULT_BRUSH_TYPE,
   paintColor: DEFAULT_PAINT_COLOR,
   imageMeta: null,
+  // NOTE: Focus traps for accessibility (modal focus management)
+  aboutModalTrap: null,
+  exifModalTrap: null,
 };
 
 /**
@@ -102,20 +106,32 @@ function init() {
   // Setup brush size slider
   const brushSizeSlider = document.getElementById('brushSizeSlider');
   if (brushSizeSlider) {
+    brushSizeSlider.addEventListener('input', () => {
+      // Update aria-valuenow for screen readers
+      brushSizeSlider.setAttribute('aria-valuenow', brushSizeSlider.value);
+    });
     brushSizeSlider.addEventListener('change', () => {
       const biggerDimension = Math.max(canvas.width, canvas.height);
       state.brushSize = Math.floor(
         (brushSizeSlider.value * biggerDimension) / state.brushAdjustment
       );
       setCursor(canvas, state.brushSize, state.brush);
+      // Announce to screen readers
+      announceToScreenReader(`Brush size set to ${brushSizeSlider.value}`);
     });
   }
 
   // Setup blur amount slider
   const blurAmountSlider = document.getElementById('blurAmountSlider');
   if (blurAmountSlider) {
+    blurAmountSlider.addEventListener('input', () => {
+      // Update aria-valuenow for screen readers
+      blurAmountSlider.setAttribute('aria-valuenow', blurAmountSlider.value);
+    });
     blurAmountSlider.addEventListener('change', () => {
       state.blurAmount = Math.floor(blurAmountSlider.value);
+      // Announce to screen readers
+      announceToScreenReader(`Blur radius set to ${blurAmountSlider.value}`);
     });
   }
 
@@ -216,21 +232,40 @@ function init() {
     });
   }
 
-  // Setup about button
+  // Setup about button with focus trap
   const aboutButton = document.getElementById('about');
   if (aboutButton) {
     const info = document.getElementById('imageScrubberInfo');
     if (info) {
       info.style.display = 'none';
+      // Create close button for modal
+      const closeButton = document.createElement('button');
+      closeButton.textContent = 'Close';
+      closeButton.className = 'modal-close-button';
+      closeButton.setAttribute('aria-label', 'Close about dialog');
+      info.appendChild(closeButton);
+
+      // Create focus trap for about modal
+      state.aboutModalTrap = createFocusTrap(info, () => {
+        closeModal(info, aboutButton, state.aboutModalTrap);
+      });
+
+      // Close button handler
+      closeButton.addEventListener('click', () => {
+        closeModal(info, aboutButton, state.aboutModalTrap);
+      });
     }
 
     aboutButton.setAttribute('aria-expanded', 'false');
     aboutButton.addEventListener('click', () => {
       const isOpen = info && info.style.display !== 'none';
       if (info) {
-        info.style.display = isOpen ? 'none' : 'block';
+        if (isOpen) {
+          closeModal(info, aboutButton, state.aboutModalTrap);
+        } else {
+          openModal(info, aboutButton, state.aboutModalTrap);
+        }
       }
-      aboutButton.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
     });
   }
 
@@ -390,9 +425,10 @@ function setupNetworkBanner() {
  * - Makes file input label keyboard-activatable
  * - Sets tabindex on all interactive elements
  * - Enables proper focus management
+ * - Adds global keyboard shortcuts
  * 
+ * NOTE: Keyboard shortcuts added for common actions
  * TODO: Add skip-to-main-content link
- * TODO: Add keyboard shortcut documentation
  * TODO: Test with actual screen readers (NVDA, JAWS)
  */
 function setupAccessibleControls() {
@@ -415,6 +451,9 @@ function setupAccessibleControls() {
         el.setAttribute('tabindex', '0');
       }
     });
+
+  // Setup global keyboard shortcuts
+  setupKeyboardShortcuts();
 }
 
 /**
@@ -540,22 +579,213 @@ function clearSession(canvases) {
   }
 }
 
-function addKeyboardActivation(element, callback) {
-  if (!element || typeof callback !== 'function') return;
+/**
+ * Open modal dialog with focus trap
+ * @param {HTMLElement} modal - Modal element to open
+ * @param {HTMLElement} trigger - Button that triggered the modal
+ * @param {Object} focusTrap - Focus trap instance
+ */
+function openModal(modal, trigger, focusTrap) {
+  if (!modal) return;
 
-  const handler = (event) => {
-    const isKeyboard =
-      event.type === 'keydown' && (event.key === 'Enter' || event.key === ' ');
-    if (event.type === 'click' || isKeyboard) {
-      if (isKeyboard) {
-        event.preventDefault();
-      }
-      callback(event);
+  modal.style.display = 'block';
+  modal.setAttribute('aria-modal', 'true');
+  if (trigger) {
+    trigger.setAttribute('aria-expanded', 'true');
+  }
+
+  // Activate focus trap after modal is visible
+  if (focusTrap) {
+    // Small delay to ensure modal is rendered
+    setTimeout(() => focusTrap.activate(), 50);
+  }
+
+  // Hide background content from screen readers
+  const mainContent = document.getElementById('topBar');
+  const canvas = document.getElementById('imageCanvas');
+  if (mainContent) mainContent.setAttribute('aria-hidden', 'true');
+  if (canvas) canvas.setAttribute('aria-hidden', 'true');
+}
+
+/**
+ * Close modal dialog and restore focus
+ * @param {HTMLElement} modal - Modal element to close
+ * @param {HTMLElement} trigger - Button that triggered the modal
+ * @param {Object} focusTrap - Focus trap instance
+ */
+function closeModal(modal, trigger, focusTrap) {
+  if (!modal) return;
+
+  // Deactivate focus trap before hiding modal
+  if (focusTrap) {
+    focusTrap.deactivate();
+  }
+
+  modal.style.display = 'none';
+  modal.setAttribute('aria-modal', 'false');
+  if (trigger) {
+    trigger.setAttribute('aria-expanded', 'false');
+  }
+
+  // Restore background content for screen readers
+  const mainContent = document.getElementById('topBar');
+  const canvas = document.getElementById('imageCanvas');
+  if (mainContent) mainContent.removeAttribute('aria-hidden');
+  if (canvas) canvas.removeAttribute('aria-hidden');
+}
+
+/**
+ * Setup global keyboard shortcuts
+ * 
+ * Implements common keyboard shortcuts for accessibility:
+ * - Ctrl/Cmd+S: Save image
+ * - Ctrl/Cmd+O: Open image
+ * - Ctrl/Cmd+R: Rotate image
+ * - B: Switch to Blur mode
+ * - P: Switch to Paint mode
+ * - U: Switch to Undo mode
+ * - 1: Round brush
+ * - 2: Rectangle tool
+ * - 3: Tap tool
+ * - [/]: Decrease/increase brush size
+ * - ?/F1: Open help/about
+ * 
+ * NOTE: Keyboard shortcuts announced via aria-live region
+ * TODO: Add customizable shortcuts in settings
+ * TODO: Add keyboard shortcut reference card
+ */
+function setupKeyboardShortcuts() {
+  document.addEventListener('keydown', (e) => {
+    // Don't trigger shortcuts when typing in inputs
+    if (e.target.matches('input, textarea, select')) {
+      return;
     }
-  };
 
-  element.addEventListener('click', handler);
-  element.addEventListener('keydown', handler);
+    // Check for modifiers
+    const ctrlOrCmd = e.ctrlKey || e.metaKey;
+
+    // Save image: Ctrl/Cmd+S
+    if (ctrlOrCmd && e.key === 's') {
+      e.preventDefault();
+      const saveButton = document.getElementById('saveButton');
+      if (saveButton) {
+        saveButton.click();
+        announceToScreenReader('Save image triggered');
+      }
+      return;
+    }
+
+    // Open image: Ctrl/Cmd+O
+    if (ctrlOrCmd && e.key === 'o') {
+      e.preventDefault();
+      const fileInput = document.getElementById('file-input');
+      if (fileInput) {
+        fileInput.click();
+        announceToScreenReader('Open image dialog triggered');
+      }
+      return;
+    }
+
+    // Rotate: Ctrl/Cmd+R
+    if (ctrlOrCmd && e.key === 'r') {
+      e.preventDefault();
+      const rotateButton = document.getElementById('rotate');
+      if (rotateButton) {
+        rotateButton.click();
+        announceToScreenReader('Rotated image 90 degrees');
+      }
+      return;
+    }
+
+    // Don't process other shortcuts if Ctrl/Cmd is held
+    if (ctrlOrCmd) return;
+
+    // Painting mode shortcuts
+    switch (e.key.toLowerCase()) {
+      case 'b':
+        e.preventDefault();
+        document.getElementById('Blur')?.click();
+        announceToScreenReader('Blur mode activated');
+        break;
+      case 'p':
+        e.preventDefault();
+        document.getElementById('Paint')?.click();
+        announceToScreenReader('Paint mode activated');
+        break;
+      case 'u':
+        e.preventDefault();
+        document.getElementById('Undo')?.click();
+        announceToScreenReader('Undo mode activated');
+        break;
+      case '1':
+        e.preventDefault();
+        document.getElementById('Round')?.click();
+        announceToScreenReader('Round brush selected');
+        break;
+      case '2':
+        e.preventDefault();
+        document.getElementById('Area')?.click();
+        announceToScreenReader('Rectangle tool selected');
+        break;
+      case '3':
+        e.preventDefault();
+        document.getElementById('Tap')?.click();
+        announceToScreenReader('Tap tool selected');
+        break;
+      case '[':
+        e.preventDefault();
+        adjustBrushSize(-5);
+        break;
+      case ']':
+        e.preventDefault();
+        adjustBrushSize(5);
+        break;
+      case '?':
+      case 'F1':
+        e.preventDefault();
+        document.getElementById('about')?.click();
+        break;
+    }
+  });
+}
+
+/**
+ * Adjust brush size via keyboard
+ * @param {number} delta - Amount to change brush size slider
+ */
+function adjustBrushSize(delta) {
+  const slider = document.getElementById('brushSizeSlider');
+  if (!slider) return;
+
+  const newValue = Math.max(
+    parseInt(slider.min),
+    Math.min(parseInt(slider.max), parseInt(slider.value) + delta)
+  );
+  slider.value = newValue;
+
+  // Trigger change event to update brush
+  slider.dispatchEvent(new Event('change'));
+  announceToScreenReader(`Brush size: ${newValue}`);}
+
+/**
+ * Announce message to screen readers via aria-live region
+ * @param {string} message - Message to announce
+ * @param {string} priority - 'polite' or 'assertive'
+ */
+function announceToScreenReader(message, priority = 'polite') {
+  const announcer = document.getElementById('sr-announcer');
+  if (!announcer) {
+    console.warn('Screen reader announcer element not found');
+    return;
+  }
+
+  announcer.textContent = '';
+  announcer.setAttribute('aria-live', priority);
+
+  // Small delay to ensure screen readers pick up the change
+  setTimeout(() => {
+    announcer.textContent = message;
+  }, 100);
 }
 
 /**

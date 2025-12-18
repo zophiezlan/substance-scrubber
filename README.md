@@ -13,6 +13,8 @@ A modern, privacy-focused tool for anonymizing photos of substances and settings
 - ✅ **Multiple Brush Types** - Freehand, rectangle, and tap modes for quick cleanup
 - ✅ **100% Client-Side** - All processing happens in your browser; nothing is uploaded
 - ✅ **Offline PWA** - Works without internet connection, installable on mobile
+- ✅ **Keyboard Accessible** - Full keyboard navigation with shortcuts (see [ACCESSIBILITY.md](ACCESSIBILITY.md))
+- ✅ **Screen Reader Support** - ARIA labels, live regions, and proper focus management
 - ✅ **Modern UI** - Professional design with dark mode, smooth animations, and responsive layout
 - ✅ **Modern Tech Stack** - Built with Vite, ES6+ modules, and modern best practices
 
@@ -77,6 +79,16 @@ Then disconnect from the internet before using it.
 **Security Note:** The blur function uses cryptographically secure pixel shuffling with noise injection. However, for the highest security on critical information, use the paint tool. When sharing photos of drugs or paraphernalia for community alerts, intentionally cover backgrounds, hands, or any distinguishing surfaces before upload.
 
 ## Development
+
+### Accessibility
+
+Substance Scrubber is designed to be accessible to all users. For detailed accessibility information including keyboard shortcuts, screen reader support, and WCAG compliance, see [ACCESSIBILITY.md](ACCESSIBILITY.md).
+
+**Quick shortcuts:**
+- `Ctrl/Cmd+O` - Open image
+- `Ctrl/Cmd+S` - Save image
+- `B`, `P`, `U` - Switch modes (Blur, Paint, Undo)
+- `?` or `F1` - Show help
 
 ### Prerequisites
 
