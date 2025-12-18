@@ -1,0 +1,71 @@
+{
+  "name": "image-scrubber",
+  "version": "2.0.0",
+  "description": "A modern tool for anonymizing photographs taken at protests",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint . --fix",
+    "format": "prettier --write \"**/*.{js,css,html,json,md}\"",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "prepare": "husky || true"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/everestpipkin/image-scrubber.git"
+  },
+  "keywords": [
+    "privacy",
+    "anonymization",
+    "exif",
+    "metadata",
+    "image-processing",
+    "protest",
+    "security",
+    "pwa"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/everestpipkin/image-scrubber/issues"
+  },
+  "homepage": "https://github.com/everestpipkin/image-scrubber#readme",
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "@vitest/ui": "^2.1.8",
+    "eslint": "^9.17.0",
+    "eslint-config-prettier": "^9.1.0",
+    "globals": "^15.14.0",
+    "husky": "^9.1.7",
+    "jsdom": "^25.0.1",
+    "lint-staged": "^15.2.11",
+    "prettier": "^3.4.2",
+    "vite": "^6.0.5",
+    "vite-plugin-pwa": "^0.21.1",
+    "vitest": "^2.1.8",
+    "workbox-window": "^7.3.0"
+  },
+  "dependencies": {
+    "@eastdesire/jscolor": "^2.5.2",
+    "exifreader": "^4.24.1",
+    "stackblur-canvas": "^2.7.0"
+  },
+  "lint-staged": {
+    "*.{js,css,html,json,md}": [
+      "prettier --write"
+    ],
+    "*.js": [
+      "eslint --fix"
+    ]
+  },
+  "prettier": {
+    "tabWidth": 2,
+    "semi": true,
+    "singleQuote": true,
+    "trailingComma": "es5",
+    "printWidth": 80
+  }
+}

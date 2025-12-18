@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <meta
+      name="description"
+      content="A modern tool for anonymizing photographs by removing EXIF metadata and blurring sensitive information. Perfect for harm reduction and privacy protection."
+    />
+    <meta name="theme-color" content="#ffffff" />
+
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/scrubber_logo_ios_homescreen.png" />
+    <link rel="icon" type="image/svg+xml" href="/scrubber_logo.svg" />
+
+    <title>Image Scrubber - Anonymize Photos Safely</title>
+  </head>
+  <body>
+    <div id="drop-zone" aria-label="Drop zone for image files">
+      <svg
+        class="icon"
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 10 10"
+        aria-hidden="true"
+      >
+        <path
+          d="M5,3 l0,4 M3,5 l4,0"
+          fill="none"
+          stroke="#fff"
+          stroke-width="0.5"
+        />
+      </svg>
+    </div>
+
+    <nav id="topBar" role="toolbar" aria-label="Image editing tools">
+      <div class="topBarDiv">
+        <label
+          for="file-input"
+          class="customFileOpen controlButton"
+          tabindex="0"
+          role="button"
+        >
+          Open Image 📂
+        </label>
+        <input
+          id="file-input"
+          type="file"
+          accept="image/*"
+          aria-label="Select image file"
+        />
+      </div>
+
+      <a
+        id="saveButton"
+        class="topBarDiv controlButton"
+        tabindex="0"
+        role="button"
+        aria-label="Save anonymized image"
+      >
+        Save Image 💾
+      </a>
+
+      <div
+        id="rotate"
+        class="topBarDiv controlButton"
+        tabindex="0"
+        role="button"
+        aria-label="Rotate image 90 degrees"
+      >
+        Rotate Image ⤾
+      </div>
+
+      <div id="paintBlur" class="topBarDiv">
+        <form id="paintForm">
+          <input
+            type="radio"
+            id="Paint"
+            name="paintingAction"
+            value="paint"
+            aria-label="Paint mode"
+          />
+          <label for="Paint">Paint</label>&nbsp;
+          <button
+            data-jscolor="{valueElement:null,value:'000000'}"
+            id="paintColor"
+            style="width: 20px; height: 20px"
+            type="button"
+            aria-label="Choose paint color"
+          ></button>
+          <br />
+          <input
+            type="radio"
+            id="Blur"
+            name="paintingAction"
+            value="blur"
+            checked
+            aria-label="Blur mode"
+          />
+          <label for="Blur">Blur </label><br />
+          <input
+            type="radio"
+            id="Undo"
+            name="paintingAction"
+            value="undo"
+            aria-label="Undo mode"
+          />
+          <label for="Undo">Undo </label>
+        </form>
+      </div>
+
+      <div id="brushType" class="topBarDiv">
+        <form id="brushForm">
+          <input
+            type="radio"
+            id="Round"
+            name="useBrush"
+            value="round"
+            checked
+            aria-label="Round brush"
+          />
+          <label for="Round">Brush </label><br />
+          <input
+            type="radio"
+            id="Area"
+            name="useBrush"
+            value="area"
+            aria-label="Rectangle tool"
+          />
+          <label for="Area">Rectangle</label><br />
+          <input
+            type="radio"
+            id="Tap"
+            name="useBrush"
+            value="tap"
+            aria-label="Tap tool"
+          />
+          <label for="Tap">Tap </label><br />
+        </form>
+      </div>
+
+      <div id="brushSizeDiv" class="topBarDiv">
+        <center>
+          Brush Size<br />
+          <input
+            type="range"
+            min="10"
+            max="100"
+            value="55"
+            class="slider"
+            id="brushSizeSlider"
+            aria-label="Brush size slider"
+          />
+          Blur Radius<br />
+          <input
+            type="range"
+            min="40"
+            max="150"
+            value="75"
+            class="slider"
+            id="blurAmountSlider"
+            aria-label="Blur radius slider"
+          />
+        </center>
+      </div>
+    </nav>
+
+    <button id="about" aria-label="About this tool">About</button>
+
+    <div id="imageScrubberInfo" role="dialog" aria-labelledby="info-title">
+      <pre>
+<center><b id="info-title">Image Scrubber</b></center>
+
+A modern tool for anonymizing photographs by removing identifying metadata and blurring sensitive information.
+
+<strong>How to Use:</strong>
+
+Click or drag an image onto the "Open Image" button. The tool will display any metadata it finds.
+
+After confirming, you can blur or paint over sensitive areas:
+• <strong>Blur:</strong> Applies pixelation and blur with cryptographic noise for maximum privacy
+• <strong>Paint:</strong> Covers areas with solid color (most secure for highly sensitive content)
+• <strong>Undo:</strong> Restore blurred/painted areas
+
+Use the sliders to adjust brush size and blur intensity. Choose between:
+• <strong>Brush:</strong> Freehand drawing
+• <strong>Rectangle:</strong> Click and drag to cover rectangular areas
+• <strong>Tap:</strong> Single clicks to cover specific spots
+
+When finished, click "Save Image" to download your anonymized photo as a PNG file (max 2500x2500 pixels).
+
+<strong>Privacy & Security:</strong>
+
+All processing happens entirely in your browser - no data is uploaded or stored anywhere. For maximum security:
+• Use offline: Load the page, then enable airplane mode before opening photos
+• Mobile: Add to homescreen, then disable data/wifi before use
+• Desktop: <a href="https://github.com/everestpipkin/image-scrubber/archive/main.zip">Download the tool</a> and run locally
+
+The blur function uses cryptographically secure pixel shuffling with noise injection, making it extremely difficult to reverse. For the highest security on critical information, use the paint tool.
+
+<strong>Support & Feedback:</strong>
+
+Github: <a href="https://github.com/everestpipkin/image-scrubber" target="_blank" rel="noopener">github.com/everestpipkin/image-scrubber</a>
+
+Additional privacy resources: <a href="https://docs.google.com/document/d/1615pZB11BhsR0KtvyiXfzfMUBlxZi47HzzhWHIRpxwU/edit" target="_blank" rel="noopener">Privacy Guide</a>
+      </pre>
+    </div>
+
+    <div
+      id="exifInformationHolder"
+      role="dialog"
+      aria-labelledby="exif-title"
+    ></div>
+
+    <canvas
+      id="imageCanvas"
+      role="img"
+      aria-label="Image editing canvas"
+    ></canvas>
+    <canvas id="tempCanvas" aria-hidden="true"></canvas>
+    <canvas id="holderCanvas" aria-hidden="true"></canvas>
+    <canvas id="rotationCanvas" aria-hidden="true"></canvas>
+    <canvas id="blurredCanvas" aria-hidden="true"></canvas>
+    <canvas id="offscreenCanvas" aria-hidden="true"></canvas>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

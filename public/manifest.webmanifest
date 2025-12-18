@@ -1,0 +1,33 @@
+{
+  "short_name": "Image Scrubber",
+  "name": "Image Scrubber - Anonymize Photos Safely",
+  "description": "A modern tool for anonymizing photographs by removing EXIF metadata and blurring sensitive information. Perfect for harm reduction and privacy protection.",
+  "start_url": "/",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "display": "standalone",
+  "scope": "/",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/scrubber_logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/scrubber_logo.svg",
+      "sizes": "150x150",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/scrubber_logo_ios_homescreen.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "apple-touch-icon"
+    }
+  ],
+  "categories": ["utilities", "privacy", "photo"],
+  "screenshots": []
+}
