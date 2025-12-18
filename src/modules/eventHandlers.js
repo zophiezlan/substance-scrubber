@@ -135,9 +135,9 @@ export function createEventHandlers(canvases, state) {
       return; // Ignore multi-touch
     }
 
-    const touch = event.changedTouches[0];
+    const touch = e.changedTouches[0];
     const mouseEvent = new MouseEvent('mousedown', {
-      view: event.target.ownerDocument.defaultView,
+      view: e.target.ownerDocument.defaultView,
       bubbles: true,
       cancelable: true,
       screenX: touch.screenX,
@@ -153,9 +153,9 @@ export function createEventHandlers(canvases, state) {
       return; // Ignore multi-touch
     }
 
-    const touch = event.changedTouches[0];
+    const touch = e.changedTouches[0];
     const mouseEvent = new MouseEvent('mousemove', {
-      view: event.target.ownerDocument.defaultView,
+      view: e.target.ownerDocument.defaultView,
       bubbles: true,
       cancelable: true,
       screenX: touch.screenX,

@@ -27,20 +27,3 @@ export function saveImage(canvas, filename) {
   );
 }
 
-/**
- * Hide the EXIF data display
- */
-export function hideExifDisplay() {
-  const exifHolder = document.getElementById('exifInformationHolder');
-  if (exifHolder) {
-    exifHolder.style.display = 'none';
-  }
-}
-
-/**
- * Show alert that EXIF data has been removed
- */
-export function showExifRemovalAlert() {
-  hideExifDisplay();
-  alert('EXIF data removed: you may now save the image');
-}

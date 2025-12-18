@@ -1,7 +1,7 @@
 {
-  "name": "image-scrubber",
-  "version": "2.0.0",
-  "description": "A modern tool for anonymizing photographs taken at protests",
+  "name": "substance-scrubber",
+  "version": "2.1.0",
+  "description": "Privacy-focused anonymizer for drug checking and harm reduction photo submissions",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -23,7 +23,8 @@
     "exif",
     "metadata",
     "image-processing",
-    "protest",
+    "harm-reduction",
+    "drug-checking",
     "security",
     "pwa"
   ],

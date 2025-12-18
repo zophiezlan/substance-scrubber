@@ -1,6 +1,6 @@
 /**
  * Main application entry point
- * Image Scrubber - Modern anonymization tool for harm reduction
+ * Substance Scrubber - Modern anonymization tool for harm reduction
  */
 
 import './styles/main.css';

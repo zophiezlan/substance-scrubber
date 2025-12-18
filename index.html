@@ -6,15 +6,15 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <meta
       name="description"
-      content="A modern tool for anonymizing photographs by removing EXIF metadata and blurring sensitive information. Perfect for harm reduction and privacy protection."
+      content="Purpose-built for anonymizing drug checking and harm reduction photos by stripping metadata and hiding sensitive details."
     />
     <meta name="theme-color" content="#ffffff" />
 
-    <link rel="manifest" href="/manifest.webmanifest" />
-    <link rel="apple-touch-icon" href="/scrubber_logo_ios_homescreen.png" />
-    <link rel="icon" type="image/svg+xml" href="/scrubber_logo.svg" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="./scrubber_logo_ios_homescreen.png" />
+    <link rel="icon" type="image/svg+xml" href="./scrubber_logo.svg" />
 
-    <title>Image Scrubber - Anonymize Photos Safely</title>
+    <title>Substance Scrubber - Anonymize Harm Reduction Photos</title>
   </head>
   <body>
     <div id="drop-zone" aria-label="Drop zone for image files">
@@ -169,17 +169,18 @@
 
     <div id="imageScrubberInfo" role="dialog" aria-labelledby="info-title">
       <pre>
-<center><b id="info-title">Image Scrubber</b></center>
 
-A modern tool for anonymizing photographs by removing identifying metadata and blurring sensitive information.
+<center><b id="info-title">Substance Scrubber</b></center>
+
+A focused tool for anonymizing drug checking and harm reduction photos by removing identifying metadata and obscuring sensitive details.
 
 <strong>How to Use:</strong>
 
-Click or drag an image onto the "Open Image" button. The tool will display any metadata it finds.
+Click or drag an image onto the "Open Image" button. Review any metadata the tool finds, then continue to the editor.
 
-After confirming, you can blur or paint over sensitive areas:
+After confirming, you can blur or paint over identifying areas:
 • <strong>Blur:</strong> Applies pixelation and blur with cryptographic noise for maximum privacy
-• <strong>Paint:</strong> Covers areas with solid color (most secure for highly sensitive content)
+• <strong>Paint:</strong> Covers areas with solid color (most secure for faces, tattoos, or backgrounds)
 • <strong>Undo:</strong> Restore blurred/painted areas
 
 Use the sliders to adjust brush size and blur intensity. Choose between:
@@ -191,9 +192,9 @@ When finished, click "Save Image" to download your anonymized photo as a PNG fil
 
 <strong>Privacy & Security:</strong>
 
-All processing happens entirely in your browser - no data is uploaded or stored anywhere. For maximum security:
+All processing happens entirely in your browser - no data is uploaded or stored anywhere. For maximum safety when sharing drug alerts:
 • Use offline: Load the page, then enable airplane mode before opening photos
-• Mobile: Add to homescreen, then disable data/wifi before use
+• Remove surroundings: Cover hands, surfaces, packaging, or room details that could identify people or locations
 • Desktop: <a href="https://github.com/zophiezlan/substance-scrubber/archive/main.zip">Download the tool</a> and run locally
 
 The blur function uses cryptographically secure pixel shuffling with noise injection, making it extremely difficult to reverse. For the highest security on critical information, use the paint tool.

@@ -1,16 +1,17 @@
-# Image Scrubber
+# Substance Scrubber
 
-A modern, privacy-focused tool for anonymizing photographs by removing EXIF metadata and blurring sensitive information. Perfect for harm reduction, privacy protection, and any situation where you need to share images safely and anonymously.
+A modern, privacy-focused tool for anonymizing photos of substances and settings before sharing with anonymous harm reduction communities. Designed to strip EXIF metadata and blur or cover identifying details so drug checking reports can be uploaded without exposing people, locations, or devices.
 
-[![CI/CD](https://github.com/zophiezlan/substance-scrubber/actions/workflows/ci.yml/badge.svg)](https://github.com/zophiezlan/substance-scrubber/actions/workflows/ci.yml)
+[![CI](https://github.com/zophiezlan/substance-scrubber/actions/workflows/ci.yml/badge.svg)](https://github.com/zophiezlan/substance-scrubber/actions/workflows/ci.yml)
+[![Deploy](https://github.com/zophiezlan/substance-scrubber/actions/workflows/deploy.yml/badge.svg)](https://github.com/zophiezlan/substance-scrubber/actions/workflows/deploy.yml)
 
 ## Features
 
-- ✅ **EXIF Metadata Removal** - Strips all identifying metadata from images
+- ✅ **EXIF Metadata Removal** - Strips all identifying metadata from lab or scene photos
 - ✅ **Advanced Blurring** - Cryptographically secure pixel shuffling with noise injection
-- ✅ **Paint Tool** - Cover sensitive areas with solid color
-- ✅ **Multiple Brush Types** - Freehand, rectangle, and tap modes
-- ✅ **100% Client-Side** - All processing happens in your browser, nothing is uploaded
+- ✅ **Paint Tool** - Cover sensitive areas with solid color when you need guaranteed obscuring
+- ✅ **Multiple Brush Types** - Freehand, rectangle, and tap modes for quick cleanup
+- ✅ **100% Client-Side** - All processing happens in your browser; nothing is uploaded
 - ✅ **Offline PWA** - Works without internet connection, installable on mobile
 - ✅ **Modern Tech Stack** - Built with Vite, ES6+ modules, and modern best practices
 
@@ -45,7 +46,7 @@ For maximum privacy and security:
 ```bash
 # Clone the repository
 git clone https://github.com/zophiezlan/substance-scrubber.git
-cd image-scrubber
+cd substance-scrubber
 
 # Install dependencies
 npm install
@@ -72,7 +73,7 @@ Then disconnect from the internet before using it.
    - Adjust brush size and blur radius
 5. **Save** - Download your anonymized image
 
-**Security Note:** The blur function uses cryptographically secure pixel shuffling with noise injection. However, for the highest security on critical information, use the paint tool.
+**Security Note:** The blur function uses cryptographically secure pixel shuffling with noise injection. However, for the highest security on critical information, use the paint tool. When sharing photos of drugs or paraphernalia for community alerts, intentionally cover backgrounds, hands, or any distinguishing surfaces before upload.
 
 ## Development
 
@@ -132,7 +133,8 @@ substance-scrubber/
 ├── dist/                    # Production build output
 ├── .github/
 │   └── workflows/
-│       └── ci.yml          # GitHub Actions CI/CD
+│       ├── ci.yml          # GitHub Actions lint/test/build
+│       └── deploy.yml      # GitHub Pages build and deploy
 ├── vite.config.js          # Vite configuration
 ├── vitest.config.js        # Test configuration
 ├── eslint.config.js        # ESLint configuration
@@ -170,9 +172,15 @@ This project uses:
 - ESLint for code linting
 - Prettier for code formatting
 - Vitest for unit testing
-- GitHub Actions for CI/CD
+- GitHub Actions for CI/CD and GitHub Pages
 
 All PRs must pass linting and tests before merging.
+
+## CI/CD & Deployment
+
+- **CI (ci.yml):** Runs `npm ci`, linting, tests, and a production build on every push and pull request to `main`.
+- **Deploy (deploy.yml):** Builds with the correct GitHub Pages base path and publishes the `dist/` output to GitHub Pages on pushes to `main` or manual runs.
+- **Base path:** The Vite config reads `VITE_BASE_PATH`. Locally it defaults to `./`, but the deploy workflow sets `/substance-scrubber/` so assets and the PWA manifest resolve correctly on GitHub Pages. If you deploy elsewhere, set `VITE_BASE_PATH` to match your path before running `npm run build`.
 
 ## Privacy & Security
 
