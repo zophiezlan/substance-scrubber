@@ -14,6 +14,7 @@
 
 import ExifReader from 'exifreader';
 import { createFocusTrap } from '../utils/focusTrap.js';
+import { hideLoading } from '../utils/dom.js';
 
 // NOTE: Store focus trap instance for EXIF modal
 let exifModalTrap = null;
@@ -110,6 +111,9 @@ export function displayExifData(exifData, onContinue) {
         return {};
       })()
     : exifData;
+
+  // Hide loading overlay now that we're showing the modal
+  hideLoading();
 
   const exifHolder = document.getElementById('exifInformationHolder');
 
