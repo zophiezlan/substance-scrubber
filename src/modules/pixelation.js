@@ -137,11 +137,15 @@ export async function pixelateCanvas(
   
   try {
     // Shuffle pixels in Web Worker for better performance
-    pixelArray.data = await shufflePixelsAsync(pixelArray.data, mainCanvas);
+    const shuffledData = await shufflePixelsAsync(pixelArray.data, mainCanvas);
+    // Copy shuffled data back into the ImageData object (data property is read-only)
+    pixelArray.data.set(shuffledData);
   } catch (error) {
     console.error('Pixel shuffling failed, falling back to synchronous:', error);
     // Fallback to synchronous shuffling if worker fails
-    pixelArray.data = shufflePixelsSync(pixelArray.data, mainCanvas);
+    const shuffledData = shufflePixelsSync(pixelArray.data, mainCanvas);
+    // Copy shuffled data back into the ImageData object (data property is read-only)
+    pixelArray.data.set(shuffledData);
   }
 
   offscreenCtx.putImageData(pixelArray, 0, 0);
