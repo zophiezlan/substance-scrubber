@@ -135,16 +135,16 @@ export async function pixelateCanvas(
   // Step 3: Get pixel data and shuffle with crypto-random positions
   const pixelArray = offscreenCtx.getImageData(0, 0, w, h);
   
+  // NOTE: ImageData.data is a read-only Uint8ClampedArray in the browser API.
+  // We must use .set() to copy values into it rather than reassigning the property.
   try {
     // Shuffle pixels in Web Worker for better performance
     const shuffledData = await shufflePixelsAsync(pixelArray.data, mainCanvas);
-    // Copy shuffled data back into the ImageData object (data property is read-only)
     pixelArray.data.set(shuffledData);
   } catch (error) {
     console.error('Pixel shuffling failed, falling back to synchronous:', error);
     // Fallback to synchronous shuffling if worker fails
     const shuffledData = shufflePixelsSync(pixelArray.data, mainCanvas);
-    // Copy shuffled data back into the ImageData object (data property is read-only)
     pixelArray.data.set(shuffledData);
   }
 
