@@ -269,11 +269,6 @@ export function setCursor(canvas, brushSize, brush) {
     ? brushSize * TAP_MODE_SIZE_MULTIPLIER 
     : brushSize;
 
-  // Apply size multiplier for tap mode
-  const effectiveBrushSize = brush === BRUSH_TYPES.TAP 
-    ? brushSize * TAP_MODE_SIZE_MULTIPLIER 
-    : brushSize;
-
   // Calculate scale for cursor
   const scaleX = canvas.getBoundingClientRect().width / canvas.width;
   

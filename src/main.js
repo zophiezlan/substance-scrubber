@@ -188,6 +188,10 @@ function init() {
       onChange: function() {
         // Update state when color changes
         state.paintColor = '#' + this.toHEXString();
+      },
+      onInput: function() {
+        // Also update on input for live updates
+        state.paintColor = '#' + this.toHEXString();
       }
     };
     jscolor.install();
