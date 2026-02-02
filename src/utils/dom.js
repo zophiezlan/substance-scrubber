@@ -266,18 +266,7 @@ export function showStatus(message, type = 'info', duration = 0, dismissible = t
   
   // Add close button if dismissible
   if (dismissible) {
-    const closeBtn = document.createElement('button');
-    closeBtn.className = 'status-banner-close';
-    closeBtn.setAttribute('aria-label', 'Close notification');
-    closeBtn.innerHTML = `
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <line x1="18" y1="6" x2="6" y2="18"></line>
-        <line x1="6" y1="6" x2="18" y2="18"></line>
-      </svg>
-    `;
-    closeBtn.onclick = () => {
-      statusBanner.style.display = 'none';
-    };
+    const closeBtn = createBannerCloseButton(statusBanner);
     statusBanner.appendChild(closeBtn);
   }
   
@@ -287,7 +276,7 @@ export function showStatus(message, type = 'info', duration = 0, dismissible = t
   
   if (duration > 0) {
     setTimeout(() => {
-      statusBanner.style.display = 'none';
+      hideBanner(statusBanner);
     }, duration);
   }
 }
@@ -373,6 +362,52 @@ export function isInViewport(element, threshold = 0) {
 }
 
 /**
+ * SVG markup for close button icon
+ * @private
+ */
+const CLOSE_ICON_SVG = `
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <line x1="18" y1="6" x2="6" y2="18"></line>
+    <line x1="6" y1="6" x2="18" y2="18"></line>
+  </svg>
+`;
+
+/**
+ * Hide a banner element
+ * 
+ * @param {HTMLElement} banner - Banner element to hide
+ * 
+ * @example
+ * hideBanner(document.getElementById('statusBanner'));
+ */
+export function hideBanner(banner) {
+  if (banner) {
+    banner.style.display = 'none';
+  }
+}
+
+/**
+ * Create a close button for a banner
+ * 
+ * @param {HTMLElement} banner - Banner element to create close button for
+ * @returns {HTMLButtonElement} Close button element
+ * 
+ * @example
+ * const closeBtn = createBannerCloseButton(banner);
+ * banner.appendChild(closeBtn);
+ */
+export function createBannerCloseButton(banner) {
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'status-banner-close';
+  closeBtn.setAttribute('aria-label', 'Close notification');
+  closeBtn.innerHTML = CLOSE_ICON_SVG;
+  closeBtn.onclick = () => {
+    hideBanner(banner);
+  };
+  return closeBtn;
+}
+
+/**
  * Add a close button to a banner element
  * 
  * @param {HTMLElement} banner - Banner element to add close button to
@@ -395,17 +430,6 @@ export function addBannerCloseButton(banner, message) {
   banner.appendChild(contentDiv);
   
   // Add close button
-  const closeBtn = document.createElement('button');
-  closeBtn.className = 'status-banner-close';
-  closeBtn.setAttribute('aria-label', 'Close notification');
-  closeBtn.innerHTML = `
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-      <line x1="18" y1="6" x2="6" y2="18"></line>
-      <line x1="6" y1="6" x2="18" y2="18"></line>
-    </svg>
-  `;
-  closeBtn.onclick = () => {
-    banner.style.display = 'none';
-  };
+  const closeBtn = createBannerCloseButton(banner);
   banner.appendChild(closeBtn);
 }
