@@ -8,37 +8,19 @@
  */
 
 /**
- * Cache for canvas bounding rectangles
- * Updated on window resize to avoid repeated getBoundingClientRect() calls
- * @private
- */
-const canvasRectCache = new WeakMap();
-
-/**
- * Get cached bounding rect for a canvas, or compute and cache it
+ * Clear the canvas rect cache (deprecated - no-op for backwards compatibility)
  * 
- * @param {HTMLCanvasElement} canvas - Canvas element
- * @returns {DOMRect} Cached or freshly computed bounding rect
- * @private
- */
-function getCachedRect(canvas) {
-  if (!canvasRectCache.has(canvas)) {
-    const rect = canvas.getBoundingClientRect();
-    canvasRectCache.set(canvas, rect);
-  }
-  return canvasRectCache.get(canvas);
-}
-
-/**
- * Clear the canvas rect cache (call on window resize)
+ * This function is kept for backwards compatibility but does nothing since
+ * we no longer cache canvas bounding rectangles. The cache was causing
+ * positioning issues when the canvas moved, scrolled, or browser zoomed.
  * 
+ * @deprecated This function no longer does anything and can be safely removed
  * @example
- * window.addEventListener('resize', clearCanvasRectCache);
+ * clearCanvasRectCache(); // No-op
  */
 export function clearCanvasRectCache() {
-  // WeakMap doesn't have a clear() method, but we can create a new one
-  // The old cache will be garbage collected
-  canvasRectCache.clear?.() ?? Object.setPrototypeOf(canvasRectCache, WeakMap.prototype);
+  // No-op: We no longer cache canvas bounding rects
+  // getBoundingClientRect() is called fresh on every mouse event for accuracy
 }
 
 /**
@@ -48,7 +30,9 @@ export function clearCanvasRectCache() {
  * This is necessary because the canvas may be scaled via CSS while maintaining
  * its internal resolution, so screen pixels != canvas pixels.
  * 
- * Uses a cached bounding rect for performance - the cache is cleared on window resize.
+ * Note: We recalculate the bounding rect on every call to ensure accuracy.
+ * getBoundingClientRect() is fast enough for mouse events and this prevents
+ * stale position data when the canvas moves, is scrolled, or browser zooms.
  * 
  * @param {HTMLCanvasElement} canvas - The canvas element
  * @param {MouseEvent|Touch} evt - Mouse event or touch object with clientX/clientY
@@ -67,8 +51,9 @@ export function getMousePos(canvas, evt) {
     return { x: 0, y: 0 };
   }
   
-  // Use cached rect for performance
-  const rect = getCachedRect(canvas);
+  // Get fresh bounding rect to ensure accurate positioning
+  // This prevents issues with scrolling, zooming, or canvas movement
+  const rect = canvas.getBoundingClientRect();
   
   const scaleX = canvas.width / (rect.right - rect.left);
   const scaleY = canvas.height / (rect.bottom - rect.top);
