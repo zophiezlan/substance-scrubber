@@ -229,12 +229,13 @@ export function createEventHandlers(canvases, state) {
           holderCanvas
         );
         break;
-      case 'tap':
+      case 'tap': {
         // Use larger brush size for tap mode to make it more distinct
         const tapSize = state.brushSize * TAP_MODE_SIZE_MULTIPLIER;
         tapDraw(ctx, mouseX, mouseY, tapSize, paintColor);
         tapDraw(tempCtx, mouseX, mouseY, tapSize, paintColor);
         break;
+      }
       default:
         console.error('Unknown brush type:', state.brush);
     }

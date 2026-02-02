@@ -185,13 +185,13 @@ function init() {
         '#FF00FF',
         '#00FFFF',
       ],
-      onChange: function() {
+      onChange() {
         // Update state when color changes
-        state.paintColor = '#' + this.toHEXString();
+        state.paintColor = `#${this.toHEXString()}`;
       },
-      onInput: function() {
+      onInput() {
         // Also update on input for live updates
-        state.paintColor = '#' + this.toHEXString();
+        state.paintColor = `#${this.toHEXString()}`;
       }
     };
     jscolor.install();
