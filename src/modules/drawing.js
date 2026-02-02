@@ -8,7 +8,7 @@
  * @module modules/drawing
  */
 
-import { BRUSH_TYPES, CURSOR_SIZE_SCALE, CURSOR_BORDER_OFFSET } from '../utils/constants.js';
+import { BRUSH_TYPES, CURSOR_SIZE_SCALE, CURSOR_BORDER_OFFSET, TAP_MODE_SIZE_MULTIPLIER } from '../utils/constants.js';
 
 /**
  * Cache for generated cursor images
@@ -240,6 +240,7 @@ export function areaDraw(
  * The cursor includes both black and white circles for visibility on any background.
  * 
  * For area/rectangle mode, uses the standard crosshair cursor.
+ * For tap mode, shows a larger cursor to indicate the increased size.
  * 
  * @param {HTMLCanvasElement} canvas - Main canvas element (for cursor attachment and scaling)
  * @param {number} brushSize - Brush radius in canvas pixels
@@ -249,6 +250,7 @@ export function areaDraw(
  * // Update cursor when brush size changes
  * setCursor(canvas, 50, 'round'); // Shows 50px radius circle cursor
  * setCursor(canvas, 100, 'area'); // Shows crosshair
+ * setCursor(canvas, 50, 'tap'); // Shows 75px radius circle cursor (1.5x)
  */
 export function setCursor(canvas, brushSize, brush) {
   if (!canvas) {
@@ -262,11 +264,17 @@ export function setCursor(canvas, brushSize, brush) {
     return;
   }
 
+  // Apply size multiplier for tap mode
+  const effectiveBrushSize = brush === BRUSH_TYPES.TAP 
+    ? brushSize * TAP_MODE_SIZE_MULTIPLIER 
+    : brushSize;
+
   // Calculate scale for cursor
   const scaleX = canvas.getBoundingClientRect().width / canvas.width;
   
-  // Create cache key
-  const cacheKey = `${brushSize}_${scaleX.toFixed(3)}`;
+  // Create cache key using effective brush size and brush type
+  // Using effectiveBrushSize ensures tap mode gets a unique cached cursor
+  const cacheKey = `${effectiveBrushSize.toFixed(1)}_${scaleX.toFixed(3)}`;
   
   // Check cache first
   if (cursorCache.has(cacheKey)) {
@@ -277,7 +285,7 @@ export function setCursor(canvas, brushSize, brush) {
   
   // Generate new cursor if not in cache
   const cursorCanvas = document.createElement('canvas');
-  const cursorSize = brushSize * CURSOR_SIZE_SCALE * scaleX;
+  const cursorSize = effectiveBrushSize * CURSOR_SIZE_SCALE * scaleX;
   
   cursorCanvas.width = cursorSize;
   cursorCanvas.height = cursorSize;
@@ -285,7 +293,7 @@ export function setCursor(canvas, brushSize, brush) {
 
   const centerX = cursorCanvas.width / 2;
   const centerY = cursorCanvas.height / 2;
-  const radius = brushSize * scaleX;
+  const radius = effectiveBrushSize * scaleX;
 
   // Draw black circle outline (visible on light backgrounds)
   cursorCtx.strokeStyle = '#000000';

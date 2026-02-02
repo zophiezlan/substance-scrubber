@@ -140,6 +140,13 @@ export const BRUSH_TYPES = {
   TAP: 'tap',
 };
 
+/**
+ * Tap mode brush size multiplier
+ * Makes tap mode more distinct with a larger brush size
+ * @constant {number}
+ */
+export const TAP_MODE_SIZE_MULTIPLIER = 1.5;
+
 // ===================================
 // File Handling
 // ===================================

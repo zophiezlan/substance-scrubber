@@ -20,7 +20,7 @@ import { loadImage, setupDragAndDrop } from './modules/imageLoader.js';
 import { rotateCanvas } from './modules/rotation.js';
 import { createEventHandlers } from './modules/eventHandlers.js';
 import { createFocusTrap, addKeyboardActivation } from './utils/focusTrap.js';
-import { showLoading, hideLoading, showError } from './utils/dom.js';
+import { showLoading, hideLoading, showError, addBannerCloseButton } from './utils/dom.js';
 import {
   DEFAULT_BRUSH_SIZE,
   DEFAULT_BLUR_AMOUNT,
@@ -185,6 +185,10 @@ function init() {
         '#FF00FF',
         '#00FFFF',
       ],
+      onInput() {
+        // Update state during user interaction for live preview
+        state.paintColor = `#${this.toHEXString()}`;
+      }
     };
     jscolor.install();
 
@@ -460,15 +464,12 @@ function setupNetworkBanner() {
   }
 
   const updateStatus = () => {
-    if (navigator.onLine) {
-      banner.textContent =
-        '⚠️ Online detected — for maximum privacy, toggle airplane mode before loading photos.';
-      banner.className = 'status-banner warning';
-    } else {
-      banner.textContent =
-        '✓ Offline mode: all processing stays on this device. You can safely scrub images without connectivity.';
-      banner.className = 'status-banner success';
-    }
+    const message = navigator.onLine
+      ? '⚠️ Online detected — for maximum privacy, toggle airplane mode before loading photos.'
+      : '✓ Offline mode: all processing stays on this device. You can safely scrub images without connectivity.';
+    
+    banner.className = navigator.onLine ? 'status-banner warning' : 'status-banner success';
+    addBannerCloseButton(banner, message);
     banner.style.display = 'flex';
   };
 
@@ -565,9 +566,10 @@ function updateCanvasGuidance(currentState, canvas) {
   if (!guidance || !canvas) return;
 
   if (!currentState.imageMeta) {
-    guidance.textContent =
+    const message =
       'Load a photo to view resolution and fit guidance. Images larger than 2500px are safely resized for performance.';
     guidance.className = 'status-banner muted';
+    addBannerCloseButton(guidance, message);
     guidance.style.display = 'flex';
     return;
   }
@@ -584,8 +586,9 @@ function updateCanvasGuidance(currentState, canvas) {
   const viewScale = Math.min(widthScale || 1, heightScale || 1);
   const viewportMessage = `Displayed at ${Math.round(viewScale * 100)}% to fit your screen.`;
 
-  guidance.textContent = `${scaleMessage} ${viewportMessage}`;
+  const message = `${scaleMessage} ${viewportMessage}`;
   guidance.className = `status-banner ${resized ? 'info' : 'muted'}`;
+  addBannerCloseButton(guidance, message);
   guidance.style.display = 'flex';
 }
 
