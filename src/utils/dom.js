@@ -246,15 +246,41 @@ export function makeKeyboardAccessible(element, callback, keys = ['Enter', ' '])
  * @param {string} message - Message to display
  * @param {string} [type='info'] - Message type: 'info', 'success', 'warning', 'error'
  * @param {number} [duration=0] - Auto-hide after duration (ms), 0 = don't hide
+ * @param {boolean} [dismissible=true] - Whether to show close button
  * 
  * @example
  * showStatus('Image saved successfully!', 'success', 3000);
  */
-export function showStatus(message, type = 'info', duration = 0) {
+export function showStatus(message, type = 'info', duration = 0, dismissible = true) {
   const statusBanner = getElementById('statusBanner');
   if (!statusBanner) return;
   
-  statusBanner.textContent = message;
+  // Clear existing content
+  statusBanner.innerHTML = '';
+  
+  // Create content wrapper
+  const contentDiv = document.createElement('div');
+  contentDiv.className = 'status-banner-content';
+  contentDiv.textContent = message;
+  statusBanner.appendChild(contentDiv);
+  
+  // Add close button if dismissible
+  if (dismissible) {
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'status-banner-close';
+    closeBtn.setAttribute('aria-label', 'Close notification');
+    closeBtn.innerHTML = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    `;
+    closeBtn.onclick = () => {
+      statusBanner.style.display = 'none';
+    };
+    statusBanner.appendChild(closeBtn);
+  }
+  
   statusBanner.className = `status-banner ${type}`;
   statusBanner.setAttribute('aria-live', type === 'error' ? 'assertive' : 'polite');
   statusBanner.style.display = message ? 'flex' : 'none';
@@ -344,4 +370,42 @@ export function isInViewport(element, threshold = 0) {
     rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) + elementHeight * (1 - threshold) &&
     rect.right <= (window.innerWidth || document.documentElement.clientWidth) + elementWidth * (1 - threshold)
   );
+}
+
+/**
+ * Add a close button to a banner element
+ * 
+ * @param {HTMLElement} banner - Banner element to add close button to
+ * @param {string} message - Message content for the banner
+ * 
+ * @example
+ * const banner = document.getElementById('canvasGuidance');
+ * addBannerCloseButton(banner, 'Image loaded successfully');
+ */
+export function addBannerCloseButton(banner, message) {
+  if (!banner) return;
+  
+  // Clear existing content
+  banner.innerHTML = '';
+  
+  // Create content wrapper
+  const contentDiv = document.createElement('div');
+  contentDiv.className = 'status-banner-content';
+  contentDiv.textContent = message;
+  banner.appendChild(contentDiv);
+  
+  // Add close button
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'status-banner-close';
+  closeBtn.setAttribute('aria-label', 'Close notification');
+  closeBtn.innerHTML = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <line x1="18" y1="6" x2="6" y2="18"></line>
+      <line x1="6" y1="6" x2="18" y2="18"></line>
+    </svg>
+  `;
+  closeBtn.onclick = () => {
+    banner.style.display = 'none';
+  };
+  banner.appendChild(closeBtn);
 }
