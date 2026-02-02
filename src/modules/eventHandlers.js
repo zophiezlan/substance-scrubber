@@ -6,6 +6,7 @@ import { getMousePos } from '../utils/canvas.js';
 import { interpolatePath, tapDraw, areaDraw } from './drawing.js';
 import { pixelateCanvas } from './pixelation.js';
 import { canvasRGBA } from 'stackblur-canvas';
+import { TAP_MODE_SIZE_MULTIPLIER } from '../utils/constants.js';
 
 /**
  * Create event handlers for the canvas
@@ -179,8 +180,8 @@ export function createEventHandlers(canvases, state) {
     } else if (state.painting === 'blur') {
       paintColor = '#000000';
     } else if (state.painting === 'paint') {
-      const paintColorForm = document.getElementById('paintColor');
-      paintColor = paintColorForm.style.backgroundColor;
+      // Use the color from state which is updated by jscolor onChange
+      paintColor = state.paintColor;
     }
 
     switch (state.brush) {
@@ -229,8 +230,10 @@ export function createEventHandlers(canvases, state) {
         );
         break;
       case 'tap':
-        tapDraw(ctx, mouseX, mouseY, state.brushSize, paintColor);
-        tapDraw(tempCtx, mouseX, mouseY, state.brushSize, paintColor);
+        // Use larger brush size for tap mode to make it more distinct
+        const tapSize = state.brushSize * TAP_MODE_SIZE_MULTIPLIER;
+        tapDraw(ctx, mouseX, mouseY, tapSize, paintColor);
+        tapDraw(tempCtx, mouseX, mouseY, tapSize, paintColor);
         break;
       default:
         console.error('Unknown brush type:', state.brush);

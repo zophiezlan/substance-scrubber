@@ -185,6 +185,10 @@ function init() {
         '#FF00FF',
         '#00FFFF',
       ],
+      onChange: function() {
+        // Update state when color changes
+        state.paintColor = '#' + this.toHEXString();
+      }
     };
     jscolor.install();
 
