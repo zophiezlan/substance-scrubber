@@ -185,12 +185,8 @@ function init() {
         '#FF00FF',
         '#00FFFF',
       ],
-      onChange() {
-        // Update state when color changes
-        state.paintColor = `#${this.toHEXString()}`;
-      },
       onInput() {
-        // Also update on input for live updates
+        // Update state during user interaction for live preview
         state.paintColor = `#${this.toHEXString()}`;
       }
     };

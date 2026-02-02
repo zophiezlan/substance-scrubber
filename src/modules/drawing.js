@@ -272,8 +272,9 @@ export function setCursor(canvas, brushSize, brush) {
   // Calculate scale for cursor
   const scaleX = canvas.getBoundingClientRect().width / canvas.width;
   
-  // Create cache key including brush type for tap mode
-  const cacheKey = `${effectiveBrushSize}_${scaleX.toFixed(3)}_${brush}`;
+  // Create cache key using effective brush size and brush type
+  // Using effectiveBrushSize ensures tap mode gets a unique cached cursor
+  const cacheKey = `${effectiveBrushSize.toFixed(1)}_${scaleX.toFixed(3)}`;
   
   // Check cache first
   if (cursorCache.has(cacheKey)) {
